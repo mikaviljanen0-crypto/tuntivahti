@@ -2,7 +2,9 @@
 
 Tampereen Julkisivutekniikka Oy:n kevyt tuntikirjaussovellus.
 
-Ensimmäisessä selainversiossa työntekijä kirjaa tunnit työmaittain ja lähettää viikon työnjohdon hyväksyttäväksi. Työnjohto voi hyväksyä tunnit sekä ylläpitää työntekijöitä ja työmaita.
+Työntekijä valitsee työmaan ja litteran, merkitsee työvaiheen aloitus- ja lopetusajan sekä lähettää viikon työnjohdon hyväksyttäväksi. Päivän eri työvaiheet voidaan kirjata eri litteroille. Yli kuuden tunnin työpäivästä vähennetään automaattisesti yksi 30 minuutin ruokatauko.
+
+Litterarekisteri perustuu tiedostoon `TJT Litterat(2).xlsx`. Kirjauksessa litteranumero säilytetään erillisenä kustannuskohdistuksena taloushallinnon raportointia varten.
 
 ## Käyttö
 
