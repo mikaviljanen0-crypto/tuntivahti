@@ -6,6 +6,10 @@ Työntekijä täyttää työajat jälkikäteen valitsemalla päivän, työmaan, 
 
 Litterarekisteri perustuu tiedostoon `TJT Litterat(2).xlsx`. Kirjauksessa litteranumero säilytetään erillisenä kustannuskohdistuksena taloushallinnon raportointia varten.
 
+Työnjohto voi lisätä työntekijä- ja päiväkohtaisen huomautuksen. Huomautus näkyy työntekijän tuntinäkymässä ja säilyy myöhempää tuntilappua sekä raportointia varten.
+
+Pääkäyttäjän demossa on yrityksen yhteenveto sekä kuukausiraportit työmaittain, työntekijöittäin ja litteroittain. Päiväkohtainen erittely toimii laskun liitteenä ja tiedot voi ladata CSV-muodossa taloushallintoa varten.
+
 ## Käyttö
 
 Avaa `index.html` selaimessa. Sovellus ei vaadi asennusta ja testitiedot tallentuvat selaimeen.
