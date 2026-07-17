@@ -2,7 +2,7 @@
 
 Tampereen Julkisivutekniikka Oy:n kevyt tuntikirjaussovellus.
 
-Työntekijä valitsee työmaan ja litteran, merkitsee työvaiheen aloitus- ja lopetusajan sekä lähettää viikon työnjohdon hyväksyttäväksi. Päivän eri työvaiheet voidaan kirjata eri litteroille. Yli kuuden tunnin työpäivästä vähennetään automaattisesti yksi 30 minuutin ruokatauko.
+Työntekijä täyttää työajat jälkikäteen valitsemalla päivän, työmaan, alku- ja loppuajan sekä litteran. Päivän eri työvaiheet voidaan kirjata eri litteroille. Uuden kirjauksen aloitusaika jatkuu automaattisesti saman päivän edellisen kirjauksen lopetusajasta. Yli kuuden tunnin työpäivästä vähennetään lopullisista päivätunneista automaattisesti 30 minuuttia ilman erillistä ruokataukoriviä.
 
 Litterarekisteri perustuu tiedostoon `TJT Litterat(2).xlsx`. Kirjauksessa litteranumero säilytetään erillisenä kustannuskohdistuksena taloushallinnon raportointia varten.
 
