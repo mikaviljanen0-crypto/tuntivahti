@@ -24,6 +24,8 @@ Työmaa perustetaan vain Työmaavahdissa. Tuntivahti lukee työmaan numeron, nim
 11. Julkaise `create-user`-palvelintoiminto komennolla `supabase functions deploy create-user`.
 12. Lisää Supabase Authenticationin URL Configuration -asetuksiin Site URL `https://tuntivahti.vercel.app` ja sama osoite sallittuihin Redirect URL -osoitteisiin.
 
+Kun käyttäjähallinnan palvelinkoodia päivitetään, julkaise `create-user`-funktio uudelleen. Funktion kautta pääkäyttäjä voi muokata käyttäjän nimeä, työnantajaa ja roolia, poistaa tunnuksen käytöstä, palauttaa sen käyttöön tai poistaa kokonaan käyttäjän, jolla ei ole historiatietoja.
+
 ## Sovitut käyttöperiaatteet
 
 - työmaanumero on pakollinen ja yrityksessä yksilöllinen

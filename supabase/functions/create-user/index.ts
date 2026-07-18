@@ -21,9 +21,54 @@ Deno.serve(async request=>{
     if(userError||!user)throw new Error('Kirjautuminen ei ole voimassa.')
 
     const {data:caller,error:profileError}=await adminClient.from('profiles').select('organization_id,role,active').eq('id',user.id).single()
-    if(profileError||!caller?.active||caller.role!=='admin')throw new Error('Vain pääkäyttäjä voi lisätä käyttäjiä.')
+    if(profileError||!caller?.active||caller.role!=='admin')throw new Error('Vain pääkäyttäjä voi hallita käyttäjiä.')
 
     const body=await request.json()
+    const action=String(body.action||'create')
+    const userId=String(body.userId||'')
+
+    if(action!=='create'){
+      const {data:target,error:targetError}=await adminClient.from('profiles').select('id,organization_id,role').eq('id',userId).eq('organization_id',caller.organization_id).single()
+      if(targetError||!target)throw new Error('Käyttäjää ei löytynyt.')
+      if(target.id===user.id&&['deactivate','delete'].includes(action))throw new Error('Et voi poistaa omaa pääkäyttäjätunnustasi käytöstä.')
+
+      if(action==='deactivate'||action==='reactivate'){
+        const active=action==='reactivate'
+        const {error:updateError}=await adminClient.from('profiles').update({active}).eq('id',target.id)
+        if(updateError)throw new Error(updateError.message)
+        const {error:authError}=await adminClient.auth.admin.updateUserById(target.id,{ban_duration:active?'none':'876000h'})
+        if(authError){await adminClient.from('profiles').update({active:!active}).eq('id',target.id);throw new Error(authError.message)}
+        return new Response(JSON.stringify({id:target.id,active}),{headers:{...corsHeaders,'Content-Type':'application/json'}})
+      }
+
+      if(action==='update'){
+        const fullName=String(body.fullName||'').trim()
+        const role=body.role==='foreman'?'foreman':'worker'
+        const employerId=String(body.employerId||'')
+        if(!fullName||!employerId)throw new Error('Täytä nimi, työnantaja ja rooli.')
+        const {data:employer}=await adminClient.from('employers').select('id').eq('id',employerId).eq('organization_id',caller.organization_id).eq('active',true).single()
+        if(!employer)throw new Error('Työnantajayritys ei kuulu tähän organisaatioon.')
+        const {error:updateError}=await adminClient.from('profiles').update({full_name:fullName,role,employer_id:employerId}).eq('id',target.id)
+        if(updateError)throw new Error(updateError.message)
+        await adminClient.auth.admin.updateUserById(target.id,{user_metadata:{full_name:fullName}})
+        return new Response(JSON.stringify({id:target.id,fullName,role}),{headers:{...corsHeaders,'Content-Type':'application/json'}})
+      }
+
+      if(action==='delete'){
+        const checks=await Promise.all([
+          adminClient.from('time_entries').select('*',{count:'exact',head:true}).eq('employee_id',target.id),
+          adminClient.from('week_submissions').select('*',{count:'exact',head:true}).eq('employee_id',target.id),
+          adminClient.from('day_notes').select('*',{count:'exact',head:true}).or(`employee_id.eq.${target.id},author_id.eq.${target.id}`),
+        ])
+        if(checks.some(result=>(result.count||0)>0))throw new Error('Käyttäjällä on kirjauksia. Poista tunnus käytöstä, jotta historiatiedot säilyvät.')
+        await adminClient.from('worksites').update({foreman_id:null}).eq('foreman_id',target.id)
+        const {error:deleteError}=await adminClient.auth.admin.deleteUser(target.id)
+        if(deleteError)throw new Error(deleteError.message)
+        return new Response(JSON.stringify({id:target.id,deleted:true}),{headers:{...corsHeaders,'Content-Type':'application/json'}})
+      }
+      throw new Error('Tuntematon käyttäjätoiminto.')
+    }
+
     const fullName=String(body.fullName||'').trim()
     const email=String(body.email||'').trim().toLowerCase()
     const password=String(body.password||'')

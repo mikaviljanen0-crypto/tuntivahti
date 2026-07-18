@@ -2,7 +2,9 @@
 
 ## Tuotantoversio
 
-Sovellus käyttää React/Vite- ja Supabase-pohjaa. Tuotantoversiossa on sähköpostikirjautuminen, roolit, yhteinen työmaarekisteri, pääkäyttäjän käyttäjähallinta ja jälkikäteen tehtävä tuntikirjaus.
+Sovellus käyttää React/Vite- ja Supabase-pohjaa. Tuotantoversiossa on sähköpostikirjautuminen, roolit, yhteinen työmaarekisteri, pääkäyttäjän käyttäjähallinta, työnjohtajan työmaanäkymä ja jälkikäteen tehtävä tuntikirjaus.
+
+Työntekijän kuukausikalenteri näyttää kirjatut tunnit ja korostaa menneet arkipäivät, joilta kirjaukset puuttuvat. Pääkäyttäjä osoittaa jokaiselle työmaalle vastuullisen työnjohtajan; sama työnjohtaja voi vastata useasta työmaasta.
 
 Käynnistys kehitysympäristössä:
 
