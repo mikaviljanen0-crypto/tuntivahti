@@ -1,5 +1,12 @@
 # Tuntivahti
 
+## Version 20 – palkkakuukauden sulkeminen
+
+- Pääkäyttäjän `Palkkakuukaudet`-valikko näyttää kuukauden tunnit, hyväksymättömät työvaiheet ja mahdolliset arkipäivät ilman kirjauksia.
+- Pääkäyttäjä sulkee kuukauden palkanlaskennan jälkeen. Suljettu kuukausi lukitsee tuntikirjaukset kaikilta rooleilta.
+- Kuukausi voidaan avata uudelleen vain pääkäyttäjän antamalla syyllä. Sulkeminen ja uudelleenavaus tallentuvat tapahtumalokiin.
+- Työntekijä voi muuttaa tai poistaa myös tarkastukseen lähetetyn kirjauksen niin kauan kuin kuukausi on avoinna ja työnjohtaja ei ole hyväksynyt sitä.
+
 ## Version 19 – päiväkohtainen lähetys tarkastukseen
 
 - `Tallenna ja lisää toinen työvaihe` jättää päivän kirjaukset luonnoksiksi ja jatkaa seuraavaan työvaiheeseen.

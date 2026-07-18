@@ -1,5 +1,9 @@
 # Tuotantoversion käyttöönotto
 
+## Päivitys versioon 20
+
+Suorita Supabasen SQL-editorissa kerran `supabase/payroll_period_lock_patch_005.sql`. Lataa sen jälkeen version 20 tiedostot GitHubiin. SQL-päivitys luo palkkakuukausien lukituksen, käyttöoikeudet ja tapahtumalokin.
+
 ## Päivitys versioon 15
 
 Lataa version 15 tiedostot GitHubiin. Erillistä uutta SQL-päivitystä ei tarvita, jos version 14 `approval_roles_reports_patch_004.sql` on jo suoritettu. Muussa tapauksessa suorita se ennen tuntilapun kommenttien testaamista.

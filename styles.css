@@ -30,3 +30,8 @@
 @media(max-width:900px){.timesheet-filters{grid-template-columns:1fr 1fr}.timesheet-filters .field:first-child,.timesheet-filters .field:last-child{grid-column:1/-1}.timesheet-title{grid-template-columns:1fr 1fr}.timesheet-title>div:first-child{grid-column:1/-1}}
 @media(max-width:560px){.timesheet-actions{display:grid}.timesheet-filters,.timesheet-title{grid-template-columns:1fr}.timesheet-filters .field:first-child,.timesheet-filters .field:last-child,.timesheet-title>div:first-child{grid-column:auto}.timesheet-day-head{display:grid}}
 @media print{body{background:#fff}.topbar,.heading,.tabs,.report-layout>section:not(.timesheet-card),.timesheet-card>.card-head,.timesheet-filters,.approval-warning{display:none!important}.container{max-width:none;padding:0}.timesheet-card{border:0;box-shadow:none}.timesheet-card .card-body{padding:0}.timesheet-title{margin-top:0;background:#fff;border:1px solid #cbd5e1}.timesheet-day{break-inside:avoid}.timesheet-day .table{font-size:11px}.timesheet-day .status{color:#000;background:transparent;padding:0}}
+
+/* Palkkakuukauden sulkeminen ja tuntiarkisto */
+.period-layout{display:grid;gap:22px}.period-controls{display:flex;align-items:end;gap:12px}.period-controls .field{min-width:240px}.period-totals{grid-template-columns:repeat(4,1fr)}.archive-info{margin-top:18px;padding:18px;border:1px solid #86efac;border-radius:12px;background:#f0fdf4}.archive-info p{margin:0}.archive-info p+p{margin-top:7px}
+@media(max-width:800px){.period-controls{display:grid}.period-controls .field{min-width:0}.period-controls button{width:100%}.period-totals{grid-template-columns:1fr 1fr}}
+@media(max-width:480px){.period-totals{grid-template-columns:1fr}}
