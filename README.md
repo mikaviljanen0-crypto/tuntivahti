@@ -1,5 +1,20 @@
 # Tuntivahti
 
+## Version 19 – päiväkohtainen lähetys tarkastukseen
+
+- `Tallenna ja lisää toinen työvaihe` jättää päivän kirjaukset luonnoksiksi ja jatkaa seuraavaan työvaiheeseen.
+- `Tallenna päivä tarkastettavaksi` tallentaa viimeisen työvaiheen ja lähettää kaikki saman päivän luonnokset sekä palautetut kirjaukset tarkastukseen.
+- Erillinen viikoittainen lähetyspainike on poistettu työntekijän näkymästä.
+- Hyväksyntätila ei edelleenkään vaikuta raportointiin.
+
+## Version 18 – tarkastukseen lähettämisen palaute
+
+Viikon lähettäminen tarkastukseen ei käytä selaimen estävää vahvistusikkunaa. Lähetys käynnistyy yhdellä painalluksella ja näyttää onnistumis- tai virheilmoituksen sovelluksessa.
+
+## Version 17 – tiiviimpi käyttäjärekisteri
+
+Käyttäjätaulukon sarakeleveydet ja toimintopainikkeet on tiivistetty niin, että nimi, työnantaja, rooli, tila ja toiminnot pysyvät selkeästi saman kortin sisällä myös tavallisella kannettavan tietokoneen näytöllä.
+
 ## Version 15 – työntekijän tuntilappu
 
 Pääkäyttäjän Raportit-näkymässä on työntekijäkohtainen tuntilappu, joka voidaan rajata kuukaudelle, vapaalle aikavälille ja työmaalle. Tuntilapun voi ladata CSV-tiedostona tai tulostaa selaimesta PDF-muotoon.
