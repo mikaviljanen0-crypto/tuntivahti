@@ -27,7 +27,7 @@ Jokaisella työmaalla on pakollinen työmaanumero. Numero näytetään työmaan 
 
 ## Tietokantapäivitykset
 
-Suorita `supabase`-hakemiston SQL-päivitykset Supabase SQL Editorissa numerojärjestyksessä. `time_entries_patch_002.sql` sallii työntekijän poistaa vain oman luonnos- tai palautetun tuntikirjauksensa.
+Suorita `supabase`-hakemiston SQL-päivitykset Supabase SQL Editorissa numerojärjestyksessä. `time_entries_patch_002.sql` sallii työntekijän poistaa vain oman luonnos- tai palautetun tuntikirjauksensa. `user_management_patch_003.sql` lisää profiileihin sähköpostin salasanan palautusta varten.
 
 ## Käyttäjien lisääminen
 
@@ -38,6 +38,8 @@ supabase functions deploy create-user
 ```
 
 Supabase antaa funktiolle `SUPABASE_URL`-, `SUPABASE_ANON_KEY`- ja `SUPABASE_SERVICE_ROLE_KEY`-ympäristömuuttujat automaattisesti. Service role -avainta ei lisätä Verceliin tai selainkoodiin.
+
+Salasanan palautusta varten Supabase Authenticationin Site URL- ja Redirect URL -asetuksiin lisätään `https://tuntivahti.vercel.app`.
 
 ## Seuraava vaihe
 

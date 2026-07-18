@@ -9,3 +9,4 @@
 .employee-layout{display:grid;grid-template-columns:minmax(330px,.75fr) minmax(0,1.25fr);gap:22px}.form-space{margin-top:14px}.password-row{display:grid;grid-template-columns:1fr auto;gap:9px}.field small{font-size:12px}
 @media(max-width:900px){.employee-layout{grid-template-columns:1fr}}
 @media(max-width:520px){.password-row{grid-template-columns:1fr}.password-row .secondary{width:100%}}
+.text-button{border:0;background:transparent;color:#1d4ed8;padding:13px 0 0;font-weight:700}.nowrap{white-space:nowrap}

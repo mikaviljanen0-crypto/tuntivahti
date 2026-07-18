@@ -21,11 +21,12 @@ begin
     (v_org,'Tampereen Julkisivutekniikka Oy')
   on conflict (organization_id,name) do update set active=true;
 
-  insert into public.profiles(id,organization_id,full_name,role,active)
-  values ('12596778-0ebc-4098-9072-0d78f3873dbd',v_org,'Mika Viljanen','admin',true)
+  insert into public.profiles(id,organization_id,full_name,email,role,active)
+  values ('12596778-0ebc-4098-9072-0d78f3873dbd',v_org,'Mika Viljanen','mika.viljanen0@gmail.com','admin',true)
   on conflict (id) do update set
     organization_id=excluded.organization_id,
     full_name=excluded.full_name,
+    email=excluded.email,
     role='admin',
     active=true;
 

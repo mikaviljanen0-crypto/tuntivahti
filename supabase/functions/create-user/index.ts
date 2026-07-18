@@ -37,7 +37,7 @@ Deno.serve(async request=>{
     const {data:created,error:createError}=await adminClient.auth.admin.createUser({email,password,email_confirm:true,user_metadata:{full_name:fullName}})
     if(createError)throw new Error(createError.message.includes('already')?'Sähköpostiosoite on jo käytössä.':createError.message)
 
-    const {error:insertError}=await adminClient.from('profiles').insert({id:created.user.id,organization_id:caller.organization_id,employer_id:employerId,full_name:fullName,role,active:true})
+    const {error:insertError}=await adminClient.from('profiles').insert({id:created.user.id,organization_id:caller.organization_id,employer_id:employerId,full_name:fullName,email,role,active:true})
     if(insertError){await adminClient.auth.admin.deleteUser(created.user.id);throw new Error(`Käyttäjäprofiilin luonti epäonnistui: ${insertError.message}`)}
 
     return new Response(JSON.stringify({id:created.user.id,fullName,role}),{headers:{...corsHeaders,'Content-Type':'application/json'}})
