@@ -4,6 +4,8 @@
 
 Pääkäyttäjän Raportit-näkymässä on työntekijäkohtainen tuntilappu, joka voidaan rajata kuukaudelle, vapaalle aikavälille ja työmaalle. Tuntilapun voi ladata CSV-tiedostona tai tulostaa selaimesta PDF-muotoon.
 
+Raportit ja Tuntilaput ovat pääkäyttäjällä erilliset valikot. Omat tunnit näkyy vain tuntikirjauksia tekevillä työntekijöillä; kuukausipalkkaiset työnjohtajat eivät täytä tuntilappua.
+
 ## Version 14 – raportointi ja muodollinen hyväksyntä
 
 - Kuukausiraportti voidaan rajata työmaalle.
