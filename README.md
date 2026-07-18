@@ -2,7 +2,7 @@
 
 ## Tuotantoversio
 
-Sovellus on siirtymässä React/Vite- ja Supabase-pohjaan. Tuotantopohjassa on oikea sähköpostikirjautuminen, pääkäyttäjän rooli sekä yhteinen työmaarekisteri Tuntivahdille ja Työmaavahdille.
+Sovellus käyttää React/Vite- ja Supabase-pohjaa. Tuotantoversiossa on sähköpostikirjautuminen, roolit, yhteinen työmaarekisteri, työntekijälistaus ja jälkikäteen tehtävä tuntikirjaus.
 
 Käynnistys kehitysympäristössä:
 
@@ -25,13 +25,12 @@ Pääkäyttäjän demossa on yrityksen yhteenveto sekä kuukausiraportit työmai
 
 Jokaisella työmaalla on pakollinen työmaanumero. Numero näytetään työmaan nimen yhteydessä kaikissa näkymissä ja viedään CSV-raporttiin omana kenttänään taloushallinnon selainrobottia varten.
 
-## Käyttö
+## Tietokantapäivitykset
 
-Avaa `index.html` selaimessa. Sovellus ei vaadi asennusta ja testitiedot tallentuvat selaimeen.
+Suorita `supabase`-hakemiston SQL-päivitykset Supabase SQL Editorissa numerojärjestyksessä. `time_entries_patch_002.sql` sallii työntekijän poistaa vain oman luonnos- tai palautetun tuntikirjauksensa.
 
 ## Seuraava vaihe
 
-- oikeat käyttäjätunnukset ja henkilökohtaiset linkit/QR-koodit
-- tietokanta ja turvallinen yrityskohtainen tallennus
-- viikkojen selaus ja palkanlaskennan raportit
-- julkaisu verkkoon
+- työntekijöiden turvallinen kutsuminen sovelluksesta
+- viikkojen lähetys ja työnjohtajan hyväksyntä
+- kuukausiraportit ja CSV-vienti

@@ -14,12 +14,13 @@ Työmaa perustetaan vain Työmaavahdissa. Tuntivahti lukee työmaan numeron, nim
 1. Luo Supabase-projekti.
 2. Avaa Supabase Dashboardissa SQL Editor.
 3. Suorita `supabase/schema.sql`.
-4. Luo ensimmäinen kirjautuva käyttäjä Supabase Auth -näkymässä.
-5. Lisää organisaatio, työnantaja ja ensimmäisen käyttäjän `profiles`-rivi.
-6. Anna ensimmäiselle käyttäjälle rooli `admin`.
-7. Kutsu `seed_default_litteras` organisaation tunnisteella.
-8. Kopioi `.env.example` nimelle `.env.local` ja lisää Supabasen URL sekä julkinen anon-avain.
-9. Julkaise sovellus Verceliin ja lisää samat ympäristömuuttujat Vercelin projektiasetuksiin.
+4. Suorita tietokantapäivitykset numerojärjestyksessä: `security_patch_001.sql` ja `time_entries_patch_002.sql`.
+5. Luo ensimmäinen kirjautuva käyttäjä Supabase Auth -näkymässä.
+6. Lisää organisaatio, työnantaja ja ensimmäisen käyttäjän `profiles`-rivi.
+7. Anna ensimmäiselle käyttäjälle rooli `admin`.
+8. Kutsu `seed_default_litteras` organisaation tunnisteella.
+9. Kopioi `.env.example` nimelle `.env.local` ja lisää Supabasen URL sekä julkinen publishable-avain.
+10. Julkaise sovellus Verceliin ja lisää samat ympäristömuuttujat Vercelin projektiasetuksiin.
 
 ## Sovitut käyttöperiaatteet
 
