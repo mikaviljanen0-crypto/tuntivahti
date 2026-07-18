@@ -28,7 +28,7 @@ Deno.serve(async request=>{
     const userId=String(body.userId||'')
 
     if(action!=='create'){
-      const {data:target,error:targetError}=await adminClient.from('profiles').select('id,organization_id,role').eq('id',userId).eq('organization_id',caller.organization_id).single()
+      const {data:target,error:targetError}=await adminClient.from('profiles').select('id,organization_id,role,email').eq('id',userId).eq('organization_id',caller.organization_id).single()
       if(targetError||!target)throw new Error('Käyttäjää ei löytynyt.')
       if(target.id===user.id&&['deactivate','delete'].includes(action))throw new Error('Et voi poistaa omaa pääkäyttäjätunnustasi käytöstä.')
 
@@ -43,15 +43,19 @@ Deno.serve(async request=>{
 
       if(action==='update'){
         const fullName=String(body.fullName||'').trim()
+        const email=String(body.email||'').trim().toLowerCase()
         const role=body.role==='foreman'?'foreman':'worker'
         const employerId=String(body.employerId||'')
-        if(!fullName||!employerId)throw new Error('Täytä nimi, työnantaja ja rooli.')
+        if(!fullName||!email||!employerId)throw new Error('Täytä nimi, sähköposti, työnantaja ja rooli.')
         const {data:employer}=await adminClient.from('employers').select('id').eq('id',employerId).eq('organization_id',caller.organization_id).eq('active',true).single()
         if(!employer)throw new Error('Työnantajayritys ei kuulu tähän organisaatioon.')
-        const {error:updateError}=await adminClient.from('profiles').update({full_name:fullName,role,employer_id:employerId}).eq('id',target.id)
-        if(updateError)throw new Error(updateError.message)
-        await adminClient.auth.admin.updateUserById(target.id,{user_metadata:{full_name:fullName}})
-        return new Response(JSON.stringify({id:target.id,fullName,role}),{headers:{...corsHeaders,'Content-Type':'application/json'}})
+        const {data:duplicate}=await adminClient.from('profiles').select('id').eq('organization_id',caller.organization_id).ilike('email',email).neq('id',target.id).maybeSingle()
+        if(duplicate)throw new Error('Sähköpostiosoite on jo käytössä.')
+        const {error:authUpdateError}=await adminClient.auth.admin.updateUserById(target.id,{email,email_confirm:true,user_metadata:{full_name:fullName}})
+        if(authUpdateError)throw new Error(authUpdateError.message.includes('already')?'Sähköpostiosoite on jo käytössä.':authUpdateError.message)
+        const {error:updateError}=await adminClient.from('profiles').update({full_name:fullName,email,role,employer_id:employerId}).eq('id',target.id)
+        if(updateError){if(target.email)await adminClient.auth.admin.updateUserById(target.id,{email:target.email,email_confirm:true});throw new Error(updateError.message)}
+        return new Response(JSON.stringify({id:target.id,fullName,email,role}),{headers:{...corsHeaders,'Content-Type':'application/json'}})
       }
 
       if(action==='delete'){

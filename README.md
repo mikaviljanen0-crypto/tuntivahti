@@ -6,6 +6,8 @@ Sovellus käyttää React/Vite- ja Supabase-pohjaa. Tuotantoversiossa on sähkö
 
 Työntekijän kuukausikalenteri näyttää kirjatut tunnit ja korostaa menneet arkipäivät, joilta kirjaukset puuttuvat. Pääkäyttäjä osoittaa jokaiselle työmaalle vastuullisen työnjohtajan; sama työnjohtaja voi vastata useasta työmaasta.
 
+Työnjohtaja voi rajata näkymän työmaan sekä alku- ja loppupäivän perusteella. Saman työntekijän samana päivänä samalla työmaalla tekemät työvaiheet ryhmitellään yhden otsikon alle, ja jokaisesta työvaiheesta näytetään oma kellonaika ja littera.
+
 Käynnistys kehitysympäristössä:
 
 ```bash
