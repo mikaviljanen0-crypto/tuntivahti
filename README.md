@@ -1,5 +1,13 @@
 # Tuntivahti
 
+## Version 14 – raportointi ja muodollinen hyväksyntä
+
+- Kuukausiraportti voidaan rajata työmaalle.
+- Tunnit ryhmitellään työmaan ja litteran mukaan; nollarivejä ei näytetä.
+- Kaikki kirjaukset näkyvät listoissa, raporteissa, laskutuspohjassa ja CSV-tiedostossa hyväksyntätilasta riippumatta.
+- Hyväksymättömät tunnit näytetään erillisenä huomautuksena, mutta ne sisältyvät aina kokonaistunteihin.
+- Ruokatauon 0,50 h vähennys kohdistuu työntekijän päivän viimeiseen työvaiheeseen, kun päivän työaika ylittää 6 tuntia.
+
 ## Tuotantoversio
 
 Sovellus käyttää React/Vite- ja Supabase-pohjaa. Tuotantoversiossa on sähköpostikirjautuminen, roolit, yhteinen työmaarekisteri, pääkäyttäjän käyttäjähallinta, työnjohtajan työmaanäkymä ja jälkikäteen tehtävä tuntikirjaus.

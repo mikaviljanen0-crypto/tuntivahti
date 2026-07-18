@@ -1,5 +1,14 @@
 # Tuotantoversion käyttöönotto
 
+## Päivitys versioon 14
+
+1. Suorita Supabasen SQL-editorissa `supabase/approval_roles_reports_patch_004.sql` kerran.
+2. Päivitä GitHubiin tämän paketin tiedostot.
+3. Päivitä Supabasen Edge Function `create-user` tiedostosta `supabase/functions/create-user/index.ts` ja julkaise se.
+4. Vercel rakentaa uuden version GitHubin `main`-haarasta.
+
+Raportointi ei suodata hyväksyntätilan perusteella. Luonnokset, tarkastukseen lähetetyt, palautetut ja hyväksytyt tunnit sisältyvät kaikki raporttiin; hyväksymättömät ilmoitetaan erikseen.
+
 ## Valittu rakenne
 
 - Supabase: kirjautuminen, PostgreSQL-tietokanta ja käyttöoikeudet
