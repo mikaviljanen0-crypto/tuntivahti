@@ -1,5 +1,9 @@
 # Tuntivahti
 
+## Version 15 – työntekijän tuntilappu
+
+Pääkäyttäjän Raportit-näkymässä on työntekijäkohtainen tuntilappu, joka voidaan rajata kuukaudelle, vapaalle aikavälille ja työmaalle. Tuntilapun voi ladata CSV-tiedostona tai tulostaa selaimesta PDF-muotoon.
+
 ## Version 14 – raportointi ja muodollinen hyväksyntä
 
 - Kuukausiraportti voidaan rajata työmaalle.
@@ -7,6 +11,8 @@
 - Kaikki kirjaukset näkyvät listoissa, raporteissa, laskutuspohjassa ja CSV-tiedostossa hyväksyntätilasta riippumatta.
 - Hyväksymättömät tunnit näytetään erillisenä huomautuksena, mutta ne sisältyvät aina kokonaistunteihin.
 - Ruokatauon 0,50 h vähennys kohdistuu työntekijän päivän viimeiseen työvaiheeseen, kun päivän työaika ylittää 6 tuntia.
+- Pääkäyttäjä voi avata työntekijäkohtaisen tuntilapun kuukaudelta tai vapaalta aikaväliltä, rajata sen työmaalle sekä tallentaa CSV:n tai tulostaa PDF:n.
+- Tuntilapulla näkyvät päivittäiset kellonajat, työmaanumerot, litterat, maksettavat tunnit, hyväksyntätilat ja työnjohtajan kommentit.
 
 ## Tuotantoversio
 
