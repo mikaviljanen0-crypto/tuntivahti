@@ -21,6 +21,7 @@ Työmaa perustetaan vain Työmaavahdissa. Tuntivahti lukee työmaan numeron, nim
 8. Kutsu `seed_default_litteras` organisaation tunnisteella.
 9. Kopioi `.env.example` nimelle `.env.local` ja lisää Supabasen URL sekä julkinen publishable-avain.
 10. Julkaise sovellus Verceliin ja lisää samat ympäristömuuttujat Vercelin projektiasetuksiin.
+11. Julkaise `create-user`-palvelintoiminto komennolla `supabase functions deploy create-user`.
 
 ## Sovitut käyttöperiaatteet
 

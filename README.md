@@ -2,7 +2,7 @@
 
 ## Tuotantoversio
 
-Sovellus käyttää React/Vite- ja Supabase-pohjaa. Tuotantoversiossa on sähköpostikirjautuminen, roolit, yhteinen työmaarekisteri, työntekijälistaus ja jälkikäteen tehtävä tuntikirjaus.
+Sovellus käyttää React/Vite- ja Supabase-pohjaa. Tuotantoversiossa on sähköpostikirjautuminen, roolit, yhteinen työmaarekisteri, pääkäyttäjän käyttäjähallinta ja jälkikäteen tehtävä tuntikirjaus.
 
 Käynnistys kehitysympäristössä:
 
@@ -28,6 +28,16 @@ Jokaisella työmaalla on pakollinen työmaanumero. Numero näytetään työmaan 
 ## Tietokantapäivitykset
 
 Suorita `supabase`-hakemiston SQL-päivitykset Supabase SQL Editorissa numerojärjestyksessä. `time_entries_patch_002.sql` sallii työntekijän poistaa vain oman luonnos- tai palautetun tuntikirjauksensa.
+
+## Käyttäjien lisääminen
+
+Pääkäyttäjän käyttäjälomake käyttää Supabase Edge Functionia `create-user`. Julkaise funktio Supabase-projektiin ennen lomakkeen käyttöä:
+
+```bash
+supabase functions deploy create-user
+```
+
+Supabase antaa funktiolle `SUPABASE_URL`-, `SUPABASE_ANON_KEY`- ja `SUPABASE_SERVICE_ROLE_KEY`-ympäristömuuttujat automaattisesti. Service role -avainta ei lisätä Verceliin tai selainkoodiin.
 
 ## Seuraava vaihe
 
