@@ -5,6 +5,15 @@ const corsHeaders={
   'Access-Control-Allow-Headers':'authorization, x-client-info, apikey, content-type',
 }
 
+const normalizePhone=(value:unknown)=>{
+  let phone=String(value||'').trim().replace(/[^\d+]/g,'')
+  if(phone.startsWith('00'))phone=`+${phone.slice(2)}`
+  else if(phone.startsWith('0'))phone=`+358${phone.slice(1)}`
+  else if(phone.startsWith('358'))phone=`+${phone}`
+  return phone
+}
+const validPhone=(phone:string)=>/^\+[1-9]\d{7,14}$/.test(phone)
+
 Deno.serve(async request=>{
   if(request.method==='OPTIONS')return new Response('ok',{headers:corsHeaders})
   try{
@@ -28,7 +37,7 @@ Deno.serve(async request=>{
     const userId=String(body.userId||'')
 
     if(action!=='create'){
-      const {data:target,error:targetError}=await adminClient.from('profiles').select('id,organization_id,role,email').eq('id',userId).eq('organization_id',caller.organization_id).single()
+      const {data:target,error:targetError}=await adminClient.from('profiles').select('id,organization_id,role,email,phone').eq('id',userId).eq('organization_id',caller.organization_id).single()
       if(targetError||!target)throw new Error('Käyttäjää ei löytynyt.')
       if(target.id===user.id&&['deactivate','delete'].includes(action))throw new Error('Et voi poistaa omaa pääkäyttäjätunnustasi käytöstä.')
 
@@ -44,19 +53,23 @@ Deno.serve(async request=>{
       if(action==='update'){
         const fullName=String(body.fullName||'').trim()
         const email=String(body.email||'').trim().toLowerCase()
+        const phone=normalizePhone(body.phone)
         const role=['admin','foreman'].includes(body.role)?body.role:'worker'
         const isForeman=role==='foreman'||Boolean(body.isForeman)
         const employerId=String(body.employerId||'')
-        if(!fullName||!email||!employerId)throw new Error('Täytä nimi, sähköposti, työnantaja ja rooli.')
+        if(!fullName||!email||!phone||!employerId)throw new Error('Täytä nimi, sähköposti, puhelinnumero, työnantaja ja rooli.')
+        if(!validPhone(phone))throw new Error('Puhelinnumero ei ole kelvollinen. Käytä esimerkiksi muotoa 040 123 4567.')
         const {data:employer}=await adminClient.from('employers').select('id').eq('id',employerId).eq('organization_id',caller.organization_id).eq('active',true).single()
         if(!employer)throw new Error('Työnantajayritys ei kuulu tähän organisaatioon.')
         const {data:duplicate}=await adminClient.from('profiles').select('id').eq('organization_id',caller.organization_id).ilike('email',email).neq('id',target.id).maybeSingle()
         if(duplicate)throw new Error('Sähköpostiosoite on jo käytössä.')
+        const {data:duplicatePhone}=await adminClient.from('profiles').select('id').eq('phone',phone).neq('id',target.id).maybeSingle()
+        if(duplicatePhone)throw new Error('Puhelinnumero on jo käytössä.')
         const {error:authUpdateError}=await adminClient.auth.admin.updateUserById(target.id,{email,email_confirm:true,user_metadata:{full_name:fullName}})
-        if(authUpdateError)throw new Error(authUpdateError.message.includes('already')?'Sähköpostiosoite on jo käytössä.':authUpdateError.message)
-        const {error:updateError}=await adminClient.from('profiles').update({full_name:fullName,email,role,is_foreman:isForeman,employer_id:employerId}).eq('id',target.id)
+        if(authUpdateError)throw new Error(authUpdateError.message.includes('already')?'Sähköpostiosoite tai puhelinnumero on jo käytössä.':authUpdateError.message)
+        const {error:updateError}=await adminClient.from('profiles').update({full_name:fullName,email,phone,role,is_foreman:isForeman,employer_id:employerId}).eq('id',target.id)
         if(updateError){if(target.email)await adminClient.auth.admin.updateUserById(target.id,{email:target.email,email_confirm:true});throw new Error(updateError.message)}
-        return new Response(JSON.stringify({id:target.id,fullName,email,role,isForeman}),{headers:{...corsHeaders,'Content-Type':'application/json'}})
+        return new Response(JSON.stringify({id:target.id,fullName,email,phone,role,isForeman}),{headers:{...corsHeaders,'Content-Type':'application/json'}})
       }
 
       if(action==='delete'){
@@ -76,19 +89,23 @@ Deno.serve(async request=>{
 
     const fullName=String(body.fullName||'').trim()
     const email=String(body.email||'').trim().toLowerCase()
+    const phone=normalizePhone(body.phone)
     const password=String(body.password||'')
     const role=['admin','foreman'].includes(body.role)?body.role:'worker'
     const isForeman=role==='foreman'||Boolean(body.isForeman)
     const employerId=String(body.employerId||'')
-    if(!fullName||!email||password.length<8||!employerId)throw new Error('Täytä nimi, sähköposti, työnantaja ja vähintään 8 merkin salasana.')
+    if(!fullName||!email||!phone||password.length<8||!employerId)throw new Error('Täytä nimi, sähköposti, puhelinnumero, työnantaja ja vähintään 8 merkin salasana.')
+    if(!validPhone(phone))throw new Error('Puhelinnumero ei ole kelvollinen. Käytä esimerkiksi muotoa 040 123 4567.')
 
     const {data:employer,error:employerError}=await adminClient.from('employers').select('id').eq('id',employerId).eq('organization_id',caller.organization_id).eq('active',true).single()
     if(employerError||!employer)throw new Error('Työnantajayritys ei kuulu tähän organisaatioon.')
 
+    const {data:duplicatePhone}=await adminClient.from('profiles').select('id').eq('phone',phone).maybeSingle()
+    if(duplicatePhone)throw new Error('Puhelinnumero on jo käytössä.')
     const {data:created,error:createError}=await adminClient.auth.admin.createUser({email,password,email_confirm:true,user_metadata:{full_name:fullName}})
-    if(createError)throw new Error(createError.message.includes('already')?'Sähköpostiosoite on jo käytössä.':createError.message)
+    if(createError)throw new Error(createError.message.includes('already')?'Sähköpostiosoite tai puhelinnumero on jo käytössä.':createError.message)
 
-    const {error:insertError}=await adminClient.from('profiles').insert({id:created.user.id,organization_id:caller.organization_id,employer_id:employerId,full_name:fullName,email,role,is_foreman:isForeman,active:true})
+    const {error:insertError}=await adminClient.from('profiles').insert({id:created.user.id,organization_id:caller.organization_id,employer_id:employerId,full_name:fullName,email,phone,role,is_foreman:isForeman,active:true})
     if(insertError){await adminClient.auth.admin.deleteUser(created.user.id);throw new Error(`Käyttäjäprofiilin luonti epäonnistui: ${insertError.message}`)}
 
     return new Response(JSON.stringify({id:created.user.id,fullName,role,isForeman}),{headers:{...corsHeaders,'Content-Type':'application/json'}})
