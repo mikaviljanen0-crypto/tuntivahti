@@ -29,6 +29,7 @@ create table public.profiles (
   employer_id uuid references public.employers(id),
   full_name text not null,
   phone text,
+  billing_rate numeric(10,2) not null default 0 check (billing_rate >= 0),
   role public.app_role not null default 'worker',
   active boolean not null default true,
   created_at timestamptz not null default now()
@@ -70,6 +71,7 @@ create table public.time_entries (
   work_date date not null,
   start_time time not null,
   end_time time not null,
+  billing_rate numeric(10,2) check (billing_rate is null or billing_rate >= 0),
   note text,
   status public.approval_status not null default 'draft',
   created_at timestamptz not null default now(),
