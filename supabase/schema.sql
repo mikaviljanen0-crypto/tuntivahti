@@ -29,6 +29,7 @@ create table public.profiles (
   employer_id uuid references public.employers(id),
   full_name text not null,
   phone text,
+  language text not null default 'fi' check (language in ('fi','sq','en','uk')),
   billing_rate numeric(10,2) not null default 0 check (billing_rate >= 0),
   role public.app_role not null default 'worker',
   active boolean not null default true,
@@ -58,6 +59,9 @@ create table public.litteras (
   organization_id uuid not null references public.organizations(id) on delete cascade,
   code text not null,
   name text not null,
+  name_sq text,
+  name_en text,
+  name_uk text,
   active boolean not null default true,
   unique (organization_id, code)
 );

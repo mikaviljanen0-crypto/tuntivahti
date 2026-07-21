@@ -55,6 +55,7 @@ Deno.serve(async request=>{
         const email=String(body.email||'').trim().toLowerCase()
         const phone=normalizePhone(body.phone)
         const role=['admin','foreman'].includes(body.role)?body.role:'worker'
+        const language=role==='worker'&&['fi','sq','en','uk'].includes(body.language)?body.language:'fi'
         const isForeman=role==='foreman'||Boolean(body.isForeman)
         const employerId=String(body.employerId||'')
         if(!fullName||!email||!phone||!employerId)throw new Error('Täytä nimi, sähköposti, puhelinnumero, työnantaja ja rooli.')
@@ -67,7 +68,7 @@ Deno.serve(async request=>{
         if(duplicatePhone)throw new Error('Puhelinnumero on jo käytössä.')
         const {error:authUpdateError}=await adminClient.auth.admin.updateUserById(target.id,{email,email_confirm:true,user_metadata:{full_name:fullName}})
         if(authUpdateError)throw new Error(authUpdateError.message.includes('already')?'Sähköpostiosoite tai puhelinnumero on jo käytössä.':authUpdateError.message)
-        const {error:updateError}=await adminClient.from('profiles').update({full_name:fullName,email,phone,role,is_foreman:isForeman,employer_id:employerId}).eq('id',target.id)
+        const {error:updateError}=await adminClient.from('profiles').update({full_name:fullName,email,phone,language,role,is_foreman:isForeman,employer_id:employerId}).eq('id',target.id)
         if(updateError){if(target.email)await adminClient.auth.admin.updateUserById(target.id,{email:target.email,email_confirm:true});throw new Error(updateError.message)}
         return new Response(JSON.stringify({id:target.id,fullName,email,phone,role,isForeman}),{headers:{...corsHeaders,'Content-Type':'application/json'}})
       }
@@ -92,6 +93,7 @@ Deno.serve(async request=>{
     const phone=normalizePhone(body.phone)
     const password=String(body.password||'')
     const role=['admin','foreman'].includes(body.role)?body.role:'worker'
+    const language=role==='worker'&&['fi','sq','en','uk'].includes(body.language)?body.language:'fi'
     const isForeman=role==='foreman'||Boolean(body.isForeman)
     const employerId=String(body.employerId||'')
     if(!fullName||!email||!phone||password.length<8||!employerId)throw new Error('Täytä nimi, sähköposti, puhelinnumero, työnantaja ja vähintään 8 merkin salasana.')
@@ -105,7 +107,7 @@ Deno.serve(async request=>{
     const {data:created,error:createError}=await adminClient.auth.admin.createUser({email,password,email_confirm:true,user_metadata:{full_name:fullName}})
     if(createError)throw new Error(createError.message.includes('already')?'Sähköpostiosoite tai puhelinnumero on jo käytössä.':createError.message)
 
-    const {error:insertError}=await adminClient.from('profiles').insert({id:created.user.id,organization_id:caller.organization_id,employer_id:employerId,full_name:fullName,email,phone,role,is_foreman:isForeman,active:true})
+    const {error:insertError}=await adminClient.from('profiles').insert({id:created.user.id,organization_id:caller.organization_id,employer_id:employerId,full_name:fullName,email,phone,language,role,is_foreman:isForeman,active:true})
     if(insertError){await adminClient.auth.admin.deleteUser(created.user.id);throw new Error(`Käyttäjäprofiilin luonti epäonnistui: ${insertError.message}`)}
 
     return new Response(JSON.stringify({id:created.user.id,fullName,role,isForeman}),{headers:{...corsHeaders,'Content-Type':'application/json'}})
