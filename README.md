@@ -34,7 +34,7 @@ Raportit ja Tuntilaput ovat pääkäyttäjällä erilliset valikot. Omat tunnit 
 - Tunnit ryhmitellään työmaan ja litteran mukaan; nollarivejä ei näytetä.
 - Kaikki kirjaukset näkyvät listoissa, raporteissa, laskutuspohjassa ja CSV-tiedostossa hyväksyntätilasta riippumatta.
 - Hyväksymättömät tunnit näytetään erillisenä huomautuksena, mutta ne sisältyvät aina kokonaistunteihin.
-- Ruokatauon 0,50 h vähennys kohdistuu työntekijän päivän viimeiseen työvaiheeseen, kun päivän työaika ylittää 6 tuntia.
+- Kun päivän työaika ylittää 6 tuntia, ruokatauon 0,50 h vähennys kohdistuu ensisijaisesti klo 11.00–11.30 päälle osuviin työvaiheisiin. Jos työntekijällä ei ole kirjausta tuolla aikavälillä, vähennys kohdistuu päivän viimeiseen työvaiheeseen.
 - Pääkäyttäjä voi avata työntekijäkohtaisen tuntilapun kuukaudelta tai vapaalta aikaväliltä, rajata sen työmaalle sekä tallentaa CSV:n tai tulostaa PDF:n.
 - Tuntilapulla näkyvät päivittäiset kellonajat, työmaanumerot, litterat, maksettavat tunnit, hyväksyntätilat ja työnjohtajan kommentit.
 
@@ -57,7 +57,7 @@ Ympäristömuuttujat kopioidaan `.env.example`-tiedostosta `.env.local`-tiedosto
 
 Tampereen Julkisivutekniikka Oy:n kevyt tuntikirjaussovellus.
 
-Työntekijä täyttää työajat jälkikäteen valitsemalla päivän, työmaan, alku- ja loppuajan sekä litteran. Päivän eri työvaiheet voidaan kirjata eri litteroille. Uuden kirjauksen aloitusaika jatkuu automaattisesti saman päivän edellisen kirjauksen lopetusajasta. Yli kuuden tunnin työpäivästä vähennetään lopullisista päivätunneista automaattisesti 30 minuuttia ilman erillistä ruokataukoriviä.
+Työntekijä täyttää työajat jälkikäteen valitsemalla päivän, työmaan, alku- ja loppuajan sekä litteran. Päivän eri työvaiheet voidaan kirjata eri litteroille. Uuden kirjauksen aloitusaika jatkuu automaattisesti saman päivän edellisen kirjauksen lopetusajasta. Yli kuuden tunnin työpäivästä vähennetään lopullisista päivätunneista automaattisesti 30 minuuttia ilman erillistä ruokataukoriviä. Vähennys kohdistetaan ensisijaisesti klo 11.00–11.30 päälle osuvaan kirjaukseen ja muussa tapauksessa päivän viimeiseen kirjaukseen.
 
 Litterarekisteri perustuu tiedostoon `TJT Litterat(2).xlsx`. Kirjauksessa litteranumero säilytetään erillisenä kustannuskohdistuksena taloushallinnon raportointia varten.
 
