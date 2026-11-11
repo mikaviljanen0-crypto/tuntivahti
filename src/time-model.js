@@ -10,6 +10,63 @@ export const weekDates = (date) => {
   const first = dateShift(date, -((d.getUTCDay() + 6) % 7));
   return Array.from({ length: 7 }, (_, i) => dateShift(first, i));
 };
+export const monthDates = (date) => {
+  const first = `${date.slice(0, 7)}-01`;
+  const last = new Date(`${first}T12:00:00Z`);
+  last.setUTCMonth(last.getUTCMonth() + 1, 0);
+  return Array.from({ length: last.getUTCDate() }, (_, i) =>
+    dateShift(first, i),
+  );
+};
+export const monthShift = (date, months) => {
+  const d = new Date(`${date.slice(0, 7)}-01T12:00:00Z`);
+  d.setUTCMonth(d.getUTCMonth() + months);
+  const first = d.toISOString().slice(0, 10);
+  return dateShift(
+    first,
+    Math.min(Number(date.slice(8, 10)), monthDates(first).length) - 1,
+  );
+};
+// NULL is a deliberate, visible transition state for existing sites only.
+// Missing site data must never silently allow a code.
+export function litterasForSite(sites, litteras, siteId) {
+  const site = sites.find((s) => s.id === siteId);
+  if (!site) return [];
+  return litteras.filter(
+    (l) =>
+      l.active !== false &&
+      (site.allowed_littera_ids == null ||
+        site.allowed_littera_ids.includes(l.id)),
+  );
+}
+export function entryLitteraAllowed(value, original, sites, litteras) {
+  const allocation = [
+    "organization_id",
+    "employee_id",
+    "worksite_id",
+    "littera_id",
+    "work_date",
+    "start_time",
+    "end_time",
+  ];
+  const same =
+    original &&
+    value.id === original.id &&
+    allocation.every((key) => {
+      if (key === "organization_id" || key === "employee_id")
+        return value[key] == null || value[key] === original[key];
+      if (key.endsWith("_time"))
+        return value[key]?.slice(0, 5) === original[key]?.slice(0, 5);
+      return value[key] === original[key];
+    });
+  // Notes / approval of history are allowed; extending or moving that work is not.
+  return (
+    !!same ||
+    litterasForSite(sites, litteras, value.worksite_id).some(
+      (l) => l.id === value.littera_id,
+    )
+  );
+}
 export const minutes = (value) => {
   if (!/^\d{2}:\d{2}(:\d{2})?$/.test(value || "")) return NaN;
   const [h, m] = value.split(":").map(Number);

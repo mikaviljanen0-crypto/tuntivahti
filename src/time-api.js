@@ -18,7 +18,9 @@ export function makeTimeApi(db, profile) {
     async bootstrap() {
       const results = await Promise.all([
         org(
-          db.from("worksites").select("id,number,name,status,foreman_id"),
+          db
+            .from("worksites")
+            .select("id,number,name,status,foreman_id,allowed_littera_ids"),
         ).order("number"),
         org(db.from("litteras").select("id,code,name,name_sq,name_en,name_uk"))
           .eq("active", true)
@@ -137,12 +139,10 @@ export function makeTimeApi(db, profile) {
     },
     async changeLittera(row, litteraId) {
       const r = await org(
-        db
-          .from("time_entries")
-          .update({
-            littera_id: litteraId,
-            updated_at: new Date().toISOString(),
-          }),
+        db.from("time_entries").update({
+          littera_id: litteraId,
+          updated_at: new Date().toISOString(),
+        }),
       )
         .eq("id", row.id)
         .select("id");
@@ -154,19 +154,17 @@ export function makeTimeApi(db, profile) {
     },
     async saveNote(row, note) {
       const r = note.trim()
-        ? await db
-            .from("day_notes")
-            .upsert(
-              {
-                organization_id: profile.organization_id,
-                employee_id: row.employee_id,
-                worksite_id: row.worksite_id,
-                work_date: row.work_date,
-                author_id: profile.id,
-                note: note.trim(),
-              },
-              { onConflict: "employee_id,work_date,worksite_id" },
-            )
+        ? await db.from("day_notes").upsert(
+            {
+              organization_id: profile.organization_id,
+              employee_id: row.employee_id,
+              worksite_id: row.worksite_id,
+              work_date: row.work_date,
+              author_id: profile.id,
+              note: note.trim(),
+            },
+            { onConflict: "employee_id,work_date,worksite_id" },
+          )
         : await org(db.from("day_notes").delete())
             .eq("employee_id", row.employee_id)
             .eq("worksite_id", row.worksite_id)

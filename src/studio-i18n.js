@@ -1,4 +1,11 @@
 const fi = {
+  codeNotAllowed:
+    "Littera ei ole käytössä tällä työmaalla. Valitse työmaalle avattu littera.",
+  noSiteCodes:
+    "Työmaalle ei ole avattu litteroita. Ota yhteyttä työnjohtajaan.",
+  oldCode: "aiempi kirjaus",
+  oldCodeHelp:
+    "Aiempi littera ei ole enää valittavissa. Jos muutat aikaa tai työmaata, valitse käytössä oleva littera.",
   today: "Tänään",
   week: "Oma viikko",
   attention: "Korjattavaa",
@@ -73,6 +80,12 @@ const fi = {
   close: "Sulje",
 };
 const sq = {
+  codeNotAllowed:
+    "Ky kod nuk është aktiv në këtë kantier. Zgjidhni një kod të lejuar.",
+  noSiteCodes: "Nuk ka kode aktive për këtë kantier. Kontaktoni përgjegjësin.",
+  oldCode: "regjistrim i mëparshëm",
+  oldCodeHelp:
+    "Kodi i mëparshëm nuk është më aktiv. Nëse ndryshoni orarin ose kantierin, zgjidhni një kod aktiv.",
   today: "Sot",
   week: "Java ime",
   attention: "Për korrigjim",
@@ -146,6 +159,12 @@ const sq = {
   close: "Mbyll",
 };
 const en = {
+  codeNotAllowed:
+    "This code is not enabled for this site. Choose an allowed code.",
+  noSiteCodes: "No codes are enabled for this site. Contact your supervisor.",
+  oldCode: "previous entry",
+  oldCodeHelp:
+    "The previous code is no longer available. Choose an enabled code if you change the time or site.",
   today: "Today",
   week: "My week",
   attention: "To correct",
@@ -218,6 +237,13 @@ const en = {
   close: "Close",
 };
 const uk = {
+  codeNotAllowed:
+    "Цей код не дозволений на цьому об’єкті. Виберіть дозволений код.",
+  noSiteCodes:
+    "Для цього об’єкта немає активних кодів. Зверніться до керівника.",
+  oldCode: "попередній запис",
+  oldCodeHelp:
+    "Попередній код більше недоступний. Якщо змінюєте час або об’єкт, виберіть активний код.",
   today: "Сьогодні",
   week: "Мій тиждень",
   attention: "Потребує виправлення",
