@@ -80,6 +80,30 @@ test("worker read scopes by organization, worker and dates", async () => {
       calls[0].steps.some((s) => JSON.stringify(s) === JSON.stringify(step)),
     );
 });
+test("review requests server-calculated net minutes, without fetching unauthorized days", async () => {
+  const { db, calls } = fakeDb([{ data: [{ id: "a", paidMinutes: 480 }] }]);
+  const rows = await makeTimeApi(db, { ...profile, role: "foreman" }).entries(
+    "2026-11-01",
+    "2026-11-30",
+    true,
+  );
+  assert.equal(rows[0].paidMinutes, 480);
+  assert.ok(
+    calls[0].steps
+      .find((s) => s[0] === "select")[1]
+      .includes("paidMinutes:review_net_minutes"),
+  );
+  assert.equal(calls.length, 1);
+});
+test("net reads fail visibly for missing or invalid totals instead of falling back to gross", async () => {
+  for (const paidMinutes of [undefined, null, -1, 480.5, "480"]) {
+    const { db } = fakeDb([{ data: [{ id: "a", paidMinutes }] }]);
+    await assert.rejects(
+      makeTimeApi(db, profile).entries("2026-11-01", "2026-11-30", true),
+      /Nettotunteja/,
+    );
+  }
+});
 test("save whitelists payload and cannot impersonate another employee", async () => {
   const { db, calls } = fakeDb([{ data: [{ id: "x" }] }]);
   await makeTimeApi(db, profile).save({

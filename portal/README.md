@@ -1,5 +1,29 @@
 # TJT portal account linking
 
+## 1.3: review net hours and surname order
+
+Daily cells, worker totals and the top review statistic use server-computed net
+minutes in both calendar modes. The drilldown retains original times and shows
+gross, net and allocated lunch. Workers are ordered by the last word of their
+existing full name with Finnish collation, then given names and ID. Names are not
+rewritten. Missing net values fail visibly; there is no silent gross fallback.
+
+The computed field `review_net_minutes(time_entries)` is SECURITY INVOKER with an
+unnamed argument (not a PostgREST RPC). Its private SECURITY DEFINER helper checks
+the live active profile, organization and actual entry visibility before reading
+the full employee-day. It returns only the authorized entry's net minutes. This
+avoids a second lunch deduction when a foreman cannot read another worksite.
+No entry, approval, payroll snapshot or RLS policy is changed. Existing lunch
+rules (over six hours, 30 minutes, 11:00 priority then latest entries) are retained.
+The existing BFF table allowlist and login grants are unchanged.
+
+Build the 1.3 UI package from the exact installed 1.2 package with
+`node portal/build-ui-update.cjs <1.2-folder> <new-1.3-folder>`.
+Run `Paivita-Tunnit-1.3.ps1` on the Windows server. It checks both schema features,
+baseline hashes, anonymous access denial and backups before/after replacing only
+browser resources. Real Windows Scheduled Tasks/DPAPI/Drive are verified by the
+installer on the user's server, not by Linux QA.
+
 ## 1.2: worksite cost codes and month overview
 
 The 1.2 installer replaces **only** `tuntivahti/public/index.html` and its hashed

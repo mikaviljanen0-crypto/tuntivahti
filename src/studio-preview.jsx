@@ -2,7 +2,12 @@
 import React, { useMemo } from "react";
 import TimeStudio from "./TimeStudio.jsx";
 import Worksites from "./Worksites.jsx";
-import { helsinkiToday, weekDates, monthDates } from "./time-model.js";
+import {
+  helsinkiToday,
+  weekDates,
+  monthDates,
+  allocateEntries,
+} from "./time-model.js";
 export default function Preview({ role }) {
   const [profile, api, worksiteApi] = useMemo(() => {
     const days = weekDates(helsinkiToday()),
@@ -137,8 +142,10 @@ export default function Preview({ role }) {
           employers,
           closed: [],
         }),
-        entries: async (from, to) =>
-          visible().filter((r) => r.work_date >= from && r.work_date <= to),
+        entries: async (from, to, net = false) =>
+          (net ? allocateEntries(visible()) : visible()).filter(
+            (r) => r.work_date >= from && r.work_date <= to,
+          ),
         notes: async () =>
           role === "worker"
             ? notes.filter((r) => r.employee_id === "w0")

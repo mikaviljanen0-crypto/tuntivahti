@@ -79,6 +79,23 @@ export const formatHours = (value) =>
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   });
+const nameCollator = new Intl.Collator("fi", { sensitivity: "base" });
+export function compareWorkersBySurname(a, b) {
+  const parts = (name) =>
+    String(name || "")
+      .trim()
+      .split(/\s+/);
+  const left = parts(a.full_name),
+    right = parts(b.full_name);
+  return (
+    nameCollator.compare(left.at(-1), right.at(-1)) ||
+    nameCollator.compare(
+      left.slice(0, -1).join(" "),
+      right.slice(0, -1).join(" "),
+    ) ||
+    String(a.id).localeCompare(String(b.id))
+  );
+}
 export function allocateDay(rows) {
   const result = rows.map((row) => ({
     ...row,
@@ -88,8 +105,10 @@ export function allocateDay(rows) {
   }));
   if (result.reduce((s, r) => s + r.grossMinutes, 0) <= 360) return result;
   let remaining = 30;
-  for (const row of [...result].sort((a, b) =>
-    a.start_time.localeCompare(b.start_time),
+  for (const row of [...result].sort(
+    (a, b) =>
+      a.start_time.localeCompare(b.start_time) ||
+      String(a.id || "").localeCompare(String(b.id || "")),
   )) {
     const overlap = Math.max(
       0,
@@ -101,8 +120,10 @@ export function allocateDay(rows) {
     row.paidMinutes -= cut;
     remaining -= cut;
   }
-  for (const row of [...result].sort((a, b) =>
-    b.end_time.localeCompare(a.end_time),
+  for (const row of [...result].sort(
+    (a, b) =>
+      b.end_time.localeCompare(a.end_time) ||
+      String(a.id || "").localeCompare(String(b.id || "")),
   )) {
     const cut = Math.min(remaining, row.paidMinutes);
     row.breakMinutes += cut;

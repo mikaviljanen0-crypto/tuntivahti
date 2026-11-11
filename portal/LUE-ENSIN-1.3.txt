@@ -1,0 +1,32 @@
+TJT-Portaali / Tunnit 1.3 - nettotunnit ja sukunimijärjestys
+
+Edellyttää asennettua Tunnit 1.2 -versiota. Asenna samalla Windows-palvelimella
+kuin aiempi päivitys, järjestelmänvalvojan PowerShellissä.
+
+1. Pura ZIP Lataukset-kansioon. Kansion nimi: TJT-Portaali-Tunnit-1.3.
+2. Suorita:
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\Downloads\TJT-Portaali-Tunnit-1.3\Paivita-Tunnit-1.3.ps1"
+3. Odota VALMIS. Päivitä portaalin Tunnit-näkymä Ctrl+F5.
+
+Uutta Tuntien tarkistus -näkymässä:
+- Päiväruudut, työntekijän yhteissumma ja yläkortti näyttävät nettotunnit.
+- Esimerkiksi 7.00-15.30 näkyy 8 tuntina, kun 30 minuutin ruokatauko vähennetään.
+- Nykyinen sääntö säilyy: yli kuuden tunnin työpäivästä vähennetään 30 minuuttia
+  ensisijaisesti klo 11.00-11.30; loppu vähennetään viimeisistä kirjauksista.
+  Enintään kuuden tunnin päivään ei tehdä automaattista ruokataukovähennystä.
+- Vähennys tehdään kerran koko työntekijän päivästä, myös eri työmailla.
+  Työnjohtajan käyttöoikeudet ja työmaasuodatus eivät muuta laskentaa.
+- Päivän avaamalla näet alkuperäiset kellonajat sekä työmaan netto- ja bruttotunnit
+  ja sille kohdistetun ruokataukovähennyksen.
+- Työntekijät on järjestetty sukunimen mukaan viikko- ja kuukausinäkymässä.
+  Nimien kirjoitusasua ei muuteta.
+
+Paketti tarkistaa ohjelmatiedostot, tietokannan valmiuden ja varmuuskopioinnin
+ennen ja jälkeen lyhyen käyttökatkon. Se vaihtaa vain Tuntivahdin selainresurssit
+ja päivittää ohjelmapaketin tarkistussummat. Tunnuksia, kirjautumisyhdistyksiä,
+Tailscale-asetuksia tai muita ohjelmia ei muuteta. Tietokannan vain lukeva
+nettolaskenta julkaistaan erikseen; asennus ei kirjoita tietokantaan.
+Kirjaukset, hyväksynnät ja suljetut palkkakaudet säilyvät ennallaan.
+
+Jos tarkistus pysähtyy ennen asennusta, älä ohita sitä. Lähetä tarkka virheviesti.
+Asennusvirheessä ohjelmatiedostot palautetaan. Palautuskansio näkyy tulosteessa.
