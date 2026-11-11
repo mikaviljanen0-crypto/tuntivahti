@@ -1,5 +1,7 @@
 node_modules/
 dist/
+dist-portal/
+dist-public-qa/
 .env*
 !.env.example
 .sites-local/

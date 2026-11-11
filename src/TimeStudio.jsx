@@ -311,7 +311,7 @@ export default function TimeStudio({
           ))}
         </nav>
         <div className="s-sidebar-bottom">
-          {!worker && /^https:\/\//.test(portal) && (
+          {!worker && (portal === "/" || /^https:\/\//.test(portal)) && (
             <a className="s-portal" href={portal}>
               <Icon name="link" />
               TJT-portaali

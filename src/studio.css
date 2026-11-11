@@ -1985,3 +1985,9 @@ body {
     scroll-behavior: auto !important;
   }
 }
+.s-portal-session{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 18px;background:#f6eee3;color:#173042;font-size:12px;flex-wrap:wrap;margin-left:238px}
+.s-portal-session a{color:inherit}.s-portal-session button{padding:5px 9px;background:white;color:#173042;border:1px solid #d5dce2;border-radius:6px;font:inherit;cursor:pointer}
+@media(max-width:1200px){.s-portal-session{margin-left:205px}}
+@media(max-width:760px){.s-portal-session{margin-left:0}}
+@media print{.s-portal-session{display:none}}
+.s-link-consent{display:flex;align-items:flex-start;gap:10px;font-size:13px;line-height:1.5;margin:18px 0}.s-link-consent input{width:18px!important;min-width:18px;height:18px;margin-top:3px}
