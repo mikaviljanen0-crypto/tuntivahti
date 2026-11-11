@@ -6,3 +6,4 @@ dist-public-qa/
 !.env.example
 .sites-local/
 test-results/
+supabase/.temp/

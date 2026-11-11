@@ -5,10 +5,96 @@ import {
   allocateEntries,
   filterEntries,
   weekDates,
+  monthDates,
+  monthShift,
+  litterasForSite,
+  entryLitteraAllowed,
   validateEntry,
   dayState,
   csvCell,
 } from "./time-model.js";
+test("month covers all and only calendar dates including leap years and DST", () => {
+  for (const [date, length] of [
+    ["2026-11-11", 30],
+    ["2026-12-31", 31],
+    ["2026-02-28", 28],
+    ["2028-02-29", 29],
+    ["2026-03-29", 31],
+    ["2026-10-25", 31],
+  ]) {
+    const days = monthDates(date);
+    assert.equal(days.length, length);
+    assert.equal(days[0], `${date.slice(0, 7)}-01`);
+    assert.equal(days.at(-1), `${date.slice(0, 7)}-${length}`);
+    assert.equal(new Set(days).size, length);
+  }
+  assert.equal(monthShift("2026-01-31", 1), "2026-02-28");
+  assert.equal(monthShift("2028-01-31", 1), "2028-02-29");
+  assert.equal(monthShift("2026-12-11", 1), "2027-01-11");
+  assert.equal(monthShift("2026-01-01", -1), "2025-12-01");
+});
+test("worksite code choices distinguish legacy, explicit empty, inactive and unknown", () => {
+  const codes = [{ id: "a" }, { id: "b" }, { id: "off", active: false }];
+  const sites = [
+    { id: "legacy", allowed_littera_ids: null },
+    { id: "selected", allowed_littera_ids: ["a", "off"] },
+    { id: "empty", allowed_littera_ids: [] },
+  ];
+  assert.deepEqual(litterasForSite(sites, codes, "legacy"), codes.slice(0, 2));
+  assert.deepEqual(
+    litterasForSite(sites, codes, "selected"),
+    codes.slice(0, 1),
+  );
+  assert.deepEqual(litterasForSite(sites, codes, "empty"), []);
+  assert.deepEqual(litterasForSite(sites, codes, "missing"), []);
+});
+test("history retains its code but cannot be extended, moved, cloned or reassigned to a disabled code", () => {
+  const sites = [{ id: "s", allowed_littera_ids: ["a"] }],
+    codes = [{ id: "a" }, { id: "old" }];
+  const old = {
+    id: "1",
+    worksite_id: "s",
+    littera_id: "old",
+    work_date: "2026-11-11",
+    start_time: "07:00:00",
+    end_time: "15:30:00",
+  };
+  assert.ok(
+    entryLitteraAllowed(
+      { ...old, note: "note", status: "approved" },
+      old,
+      sites,
+      codes,
+    ),
+  );
+  assert.ok(
+    entryLitteraAllowed(
+      { ...old, start_time: "07:00", end_time: "15:30" },
+      old,
+      sites,
+      codes,
+    ),
+  );
+  for (const patch of [
+    { id: undefined },
+    { end_time: "16:30" },
+    { start_time: "08:00" },
+    { work_date: "2026-11-12" },
+    { worksite_id: "missing" },
+  ])
+    assert.equal(
+      entryLitteraAllowed({ ...old, ...patch }, old, sites, codes),
+      false,
+    );
+  assert.ok(
+    entryLitteraAllowed(
+      { ...old, littera_id: "a", end_time: "16:30" },
+      old,
+      sites,
+      codes,
+    ),
+  );
+});
 const row = (start, end, extra = {}) => ({
   id: start,
   employee_id: "a",

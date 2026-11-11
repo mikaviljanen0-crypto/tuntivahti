@@ -1,0 +1,35 @@
+TJT-Portaali / Tunnit 1.2 - työmaan litterat ja kuukausinäkymä
+
+Edellyttää toimivaa Tunnit-SSO 1.1 -työnjohtoversiota. Asenna samalla
+Windows-palvelimella kuin aiempi päivitys, järjestelmänvalvojan PowerShellissä.
+
+1. Pura ZIP Lataukset-kansioon. Kansion nimi: TJT-Portaali-Tunnit-1.2.
+2. Suorita:
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\Downloads\TJT-Portaali-Tunnit-1.2\Paivita-Tunnit-1.2.ps1"
+3. Odota VALMIS. Päivitä portaalin Tunnit-näkymä Ctrl+F5.
+
+Päivitys tarkistaa ohjelmatiedostot ja tietokannan valmiuden sekä varmuuskopioinnin
+ennen ja jälkeen lyhyen käyttökatkon. Se vaihtaa vain Tuntivahdin selainresurssit
+ja päivittää ohjelmapaketin tarkistussummat. Kirjautumisavaimia, yhdistyksiä,
+käyttäjiä, tunnuksia tai Tailscale-asetuksia ei muuteta. Muita ohjelmia ei päivitetä.
+Tietokantapäivitys tehdään erikseen keskitetysti; tämä paketti ei muuta tietokantaa.
+
+Uutta:
+- Tuntien tarkistus > Tämä kuukausi. Nuolet vaihtavat kuukautta. Avaa päivä
+  napsauttamalla tuntisolua. Työmaa-, yritys-, nimi- ja tilarajaukset toimivat.
+  Taulukon tunnit ovat ennen ruokataukovähennystä kuten viikkonäkymässäkin.
+- Työmaat > Lisää työmaa: valitse vähintään yksi työmaalle budjetoitu littera.
+- Vanha työmaa > Valitse litterat: valitse oikeat litterat ja vahvista.
+  Vanhat työmaat toimivat vanhalla litteralistalla, kunnes valinnat vahvistetaan.
+  Aiemmista tuntikirjauksista ei päätellä hyväksyttyä litteralistaa automaattisesti.
+- Vahvistuksen jälkeen työntekijän ja työnjohdon litteravalikossa näkyvät vain
+  työmaalle avatut litterat. Tietokanta valvoo rajausta myös vanhassa selaimessa.
+- Vanhat tunnit ja raportit säilyvät. Poistunut littera näkyy aiemmassa kirjauksessa;
+  hyväksyntä ja huomautus onnistuvat, mutta ajan/työmaan muuttamiseen tarvitaan
+  käytössä oleva littera. Tyhjän listan vahvistaminen estää uudet kirjaukset.
+- Litterat valitaan nykyisestä Tuntivahdin luettelosta. Tämä julkaisu ei tuo
+  Snedon tavoitearvioita automaattisesti eikä nimeä vanhoja litteroita uudelleen.
+
+Jos tarkistus pysähtyy ennen asennusta, älä ohita sitä. Lähetä tarkka virheviesti.
+Virhe asennuksen aikana käynnistää ohjelmatiedostojen palautuksen. Tulosteessa
+kerrotaan palautuskansio. Tietokantaa tai eläviä kirjautumisyhdistyksiä ei palauteta.

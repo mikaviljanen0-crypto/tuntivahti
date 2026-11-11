@@ -1,9 +1,10 @@
 // Development-only fictional fixtures. Not bundled into production.
 import React, { useMemo } from "react";
 import TimeStudio from "./TimeStudio.jsx";
-import { helsinkiToday, weekDates } from "./time-model.js";
+import Worksites from "./Worksites.jsx";
+import { helsinkiToday, weekDates, monthDates } from "./time-model.js";
 export default function Preview({ role }) {
-  const [profile, api] = useMemo(() => {
+  const [profile, api, worksiteApi] = useMemo(() => {
     const days = weekDates(helsinkiToday()),
       sites = [
         {
@@ -12,6 +13,8 @@ export default function Preview({ role }) {
           name: "Esimerkkipiha 10",
           status: "active",
           foreman_id: "manager",
+          allowed_littera_ids: ["l1", "l2"],
+          updated_at: "2026-11-01T00:00:00Z",
         },
         {
           id: "site2",
@@ -19,6 +22,8 @@ export default function Preview({ role }) {
           name: "Mallitalon julkisivut",
           status: "active",
           foreman_id: "manager",
+          allowed_littera_ids: null,
+          updated_at: "2026-11-01T00:00:00Z",
         },
       ];
     const employers = [
@@ -70,31 +75,35 @@ export default function Preview({ role }) {
     ];
     let entries = [];
     workers.forEach((w, i) =>
-      days.slice(0, 5).forEach((day, j) => {
-        if ((i === 2 && j === 2) || (i === 4 && j > 1)) return;
-        const status =
-          j === 0
-            ? "approved"
-            : i === 1 && j === 1
-              ? "returned"
-              : j === 4
-                ? "draft"
-                : "submitted";
-        entries.push({
-          id: `r${i}-${j}`,
-          employee_id: w.id,
-          worksite_id: "site1",
-          littera_id: "l2",
-          work_date: day,
-          start_time: "07:00",
-          end_time: "15:30",
-          status,
-          note: "",
-          profiles: w,
-          worksites: sites[0],
-          litteras: litteras[1],
-        });
-      }),
+      monthDates(helsinkiToday())
+        .filter(
+          (day) => ![0, 6].includes(new Date(`${day}T12:00:00Z`).getUTCDay()),
+        )
+        .forEach((day, j) => {
+          if ((i === 2 && j === 2) || (i === 4 && j > 1)) return;
+          const status =
+            j === 0
+              ? "approved"
+              : i === 1 && j === 1
+                ? "returned"
+                : j === 4
+                  ? "draft"
+                  : "submitted";
+          entries.push({
+            id: `r${i}-${j}`,
+            employee_id: w.id,
+            worksite_id: "site1",
+            littera_id: "l2",
+            work_date: day,
+            start_time: "07:00",
+            end_time: "15:30",
+            status,
+            note: "",
+            profiles: w,
+            worksites: sites[0],
+            litteras: litteras[1],
+          });
+        }),
     );
     let notes = [
       {
@@ -206,12 +215,47 @@ export default function Preview({ role }) {
             });
         },
       },
+      {
+        load: async () => ({
+          sites: [...sites],
+          litteras,
+          foremen: [{ id: "manager", full_name: "Mika · esikatselu" }],
+        }),
+        save: async (value, original) => {
+          if (original) {
+            const i = sites.findIndex((s) => s.id === original.id);
+            sites[i] = {
+              ...sites[i],
+              ...value,
+              updated_at: new Date().toISOString(),
+            };
+          } else
+            sites.push({
+              ...value,
+              id: `site-${Date.now()}`,
+              status: "active",
+              updated_at: new Date().toISOString(),
+            });
+        },
+        toggle: async (site) => {
+          const i = sites.findIndex((s) => s.id === site.id);
+          sites[i] = {
+            ...site,
+            status: site.status === "active" ? "closed" : "active",
+          };
+        },
+      },
     ];
   }, [role]);
   return (
     <TimeStudio
       profile={profile}
       previewApi={api}
+      legacy={{
+        worksites: () => (
+          <Worksites orgId="preview" apiOverride={worksiteApi} />
+        ),
+      }}
       onLogout={() => location.assign("?preview=worker")}
     />
   );

@@ -4,6 +4,10 @@ import {
   helsinkiToday as today,
   dateShift,
   weekDates,
+  monthDates,
+  monthShift,
+  litterasForSite,
+  entryLitteraAllowed,
   allocateDay,
   allocateEntries,
   formatHours as hours,
@@ -186,7 +190,7 @@ function useRecords(api, from, to) {
   }, [api, from, to, version]);
   return { ...data, loading, error, reload: () => setVersion((x) => x + 1) };
 }
-function DayDialog({ children, title, onClose }) {
+export function DayDialog({ children, title, onClose }) {
   const ref = useRef(null),
     previous = useRef(null);
   useEffect(() => {
@@ -416,6 +420,8 @@ export default function TimeStudio({
             <ReviewDesk profile={profile} api={api} />
           ) : view === "reports" ? (
             <ReportDesk api={api} />
+          ) : view === "worksites" && Legacy ? (
+            <Legacy />
           ) : Legacy ? (
             <div className="s-legacy">
               <div className="s-page-title">
@@ -499,7 +505,13 @@ function WorkerDesk({ profile, api, view, setView, language }) {
     setEditing({
       work_date: date,
       worksite_id: prior?.worksite_id || "",
-      littera_id: prior?.littera_id || "",
+      littera_id: litterasForSite(
+        data.sites,
+        data.litteras,
+        prior?.worksite_id,
+      ).some((l) => l.id === prior?.littera_id)
+        ? prior.littera_id
+        : "",
       start_time: dayRows.at(-1)?.end_time?.slice(0, 5) || "07:00",
       end_time: dayRows.length ? "" : "15:30",
       note: "",
@@ -980,7 +992,12 @@ function EntryEditor({ value, data, language, busy, error, onClose, onSave }) {
   const initial = useRef(JSON.stringify(form)),
     endRef = useRef(null);
   const change = (key, value) => {
-    setForm((f) => ({ ...f, [key]: value }));
+    setForm((f) => ({
+      ...f,
+      [key]: value,
+      ...(key === "worksite_id" ? { littera_id: "" } : {}),
+    }));
+    if (key === "worksite_id") setSearch("");
     setLocalError("");
   };
   function close() {
@@ -992,7 +1009,12 @@ function EntryEditor({ value, data, language, busy, error, onClose, onSave }) {
       return;
     onClose();
   }
-  const options = data.litteras.filter((l) =>
+  const allowed = litterasForSite(data.sites, data.litteras, form.worksite_id);
+  const original = data.entries.find((r) => r.id === form.id);
+  const retained =
+    original?.littera_id === form.littera_id &&
+    !allowed.some((l) => l.id === form.littera_id);
+  const options = allowed.filter((l) =>
     `${l.code} ${l.name} ${translatedLitteraName(l, language)}`
       .toLocaleLowerCase()
       .includes(search.toLocaleLowerCase()),
@@ -1005,6 +1027,8 @@ function EntryEditor({ value, data, language, busy, error, onClose, onSave }) {
   function save(submit) {
     const issue = validateEntry(form, data.entries, data.closed);
     if (issue) return setLocalError(t(issue));
+    if (!entryLitteraAllowed(form, original, data.sites, data.litteras))
+      return setLocalError(t("codeNotAllowed"));
     onSave(form, submit);
   }
   return (
@@ -1086,12 +1110,24 @@ function EntryEditor({ value, data, language, busy, error, onClose, onSave }) {
             disabled={busy}
             onChange={(e) => change("littera_id", e.target.value)}
           >
+            <option value="">{t("choose")}…</option>
+            {retained && (
+              <option value={form.littera_id} disabled>
+                {original.litteras?.code} ·{" "}
+                {translatedLitteraName(original.litteras || {}, language)} (
+                {t("oldCode")})
+              </option>
+            )}
             {options.map((l) => (
               <option key={l.id} value={l.id}>
                 {l.code} · {translatedLitteraName(l, language)}
               </option>
             ))}
           </select>
+          {form.worksite_id && !allowed.length && (
+            <small role="status">{t("noSiteCodes")}</small>
+          )}
+          {retained && <small>{t("oldCodeHelp")}</small>}
           <small>
             {data.litteras.find((l) => l.id === form.littera_id)?.code}{" "}
             {translatedLitteraName(
@@ -1146,6 +1182,7 @@ function EntryEditor({ value, data, language, busy, error, onClose, onSave }) {
 
 function ReviewDesk({ profile, api }) {
   const [date, setDate] = useState(today()),
+    [period, setPeriod] = useState("week"),
     [site, setSite] = useState("all"),
     [employer, setEmployer] = useState("all"),
     [search, setSearch] = useState(""),
@@ -1155,8 +1192,8 @@ function ReviewDesk({ profile, api }) {
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
     [message, setMessage] = useState("");
-  const dates = weekDates(date),
-    data = useRecords(api, dates[0], dates[6]);
+  const dates = period === "month" ? monthDates(date) : weekDates(date),
+    data = useRecords(api, dates[0], dates.at(-1));
   const sites = data.sites.filter(
       (s) => profile.role === "admin" || s.foreman_id === profile.id,
     ),
@@ -1224,7 +1261,11 @@ function ReviewDesk({ profile, api }) {
     }
   }
   function changeLittera(row, id) {
-    const next = data.litteras.find((l) => l.id === id);
+    const next = litterasForSite(
+      data.sites,
+      data.litteras,
+      row.worksite_id,
+    ).find((l) => l.id === id);
     if (
       !next ||
       id === row.littera_id ||
@@ -1265,13 +1306,15 @@ function ReviewDesk({ profile, api }) {
           <span className="s-eyebrow">TYÖNJOHDON TYÖPÖYTÄ</span>
           <h1>Hyvä työ näkyy tunneissa.</h1>
           <p>
-            Tarkista viikko yhdellä silmäyksellä. Avaa päivä nähdäksesi
-            työvaiheet.
+            Tarkista {period === "month" ? "kuukausi" : "viikko"} yhdellä
+            silmäyksellä. Avaa päivä nähdäksesi työvaiheet.
           </p>
         </div>
         <span className="s-live">
           <i />
-          Viikko {dateLabel(dates[0])}–{dateLabel(dates[6])}
+          {period === "month"
+            ? dateLabel(date, "fi", { month: "long", year: "numeric" })
+            : `Viikko ${dateLabel(dates[0])}–${dateLabel(dates.at(-1))}`}
         </span>
       </div>
       <Notice error={error || data.error} message={message} />
@@ -1322,26 +1365,66 @@ function ReviewDesk({ profile, api }) {
           <div className="s-week-toolbar">
             <button
               className="s-icon-button"
-              onClick={() => setDate(dateShift(date, -7))}
-              aria-label="Edellinen viikko"
+              onClick={() =>
+                setDate(
+                  period === "month"
+                    ? monthShift(date, -1)
+                    : dateShift(date, -7),
+                )
+              }
+              aria-label={
+                period === "month" ? "Edellinen kuukausi" : "Edellinen viikko"
+              }
             >
               <Icon name="back" />
             </button>
             <input
-              aria-label="Tarkasteltavan viikon päivä"
-              type="date"
-              value={date}
-              onChange={(e) => e.target.value && setDate(e.target.value)}
+              aria-label={
+                period === "month"
+                  ? "Tarkasteltava kuukausi"
+                  : "Tarkasteltavan viikon päivä"
+              }
+              type={period === "month" ? "month" : "date"}
+              value={period === "month" ? date.slice(0, 7) : date}
+              onChange={(e) =>
+                e.target.value &&
+                setDate(
+                  period === "month" ? `${e.target.value}-01` : e.target.value,
+                )
+              }
             />
             <button
               className="s-icon-button"
-              onClick={() => setDate(dateShift(date, 7))}
-              aria-label="Seuraava viikko"
+              onClick={() =>
+                setDate(
+                  period === "month" ? monthShift(date, 1) : dateShift(date, 7),
+                )
+              }
+              aria-label={
+                period === "month" ? "Seuraava kuukausi" : "Seuraava viikko"
+              }
             >
               <Icon name="arrow" />
             </button>
-            <button className="s-text-button" onClick={() => setDate(today())}>
+            <button
+              className="s-text-button s-period-button"
+              aria-pressed={period === "week"}
+              onClick={() => {
+                setPeriod("week");
+                setDate(today());
+              }}
+            >
               Tämä viikko
+            </button>
+            <button
+              className="s-text-button s-period-button"
+              aria-pressed={period === "month"}
+              onClick={() => {
+                setPeriod("month");
+                setDate(today());
+              }}
+            >
+              Tämä kuukausi
             </button>
           </div>
           <div className="s-segment">
@@ -1397,21 +1480,40 @@ function ReviewDesk({ profile, api }) {
         </div>
         {data.loading ? (
           <div className="s-loading" role="status">
-            Ladataan viikon kirjauksia…
+            Ladataan {period === "month" ? "kuukauden" : "viikon"} kirjauksia…
           </div>
         ) : data.error ? null : (
           <>
-            <div className="s-matrix-wrap">
-              <table className="s-matrix">
+            <div
+              className="s-matrix-wrap"
+              tabIndex={0}
+              role="region"
+              aria-label="Tuntitaulukko, tarvittaessa vieritä sivusuunnassa"
+            >
+              <table
+                className={`s-matrix ${period === "month" ? "s-matrix-month" : ""}`}
+                style={
+                  period === "month"
+                    ? { minWidth: 248 + dates.length * 34 }
+                    : undefined
+                }
+              >
                 <thead>
                   <tr>
                     <th>
                       Työntekijä <small>{workers.length} henkilöä</small>
                     </th>
                     {dates.map((d) => (
-                      <th key={d} className={d === today() ? "today" : ""}>
+                      <th
+                        key={d}
+                        className={`${[0, 6].includes(new Date(`${d}T12:00:00Z`).getUTCDay()) ? "weekend" : ""} ${d === today() ? "today" : ""}`}
+                      >
                         <span>{dateLabel(d, "fi", { weekday: "short" })}</span>
-                        <strong>{dateLabel(d)}</strong>
+                        <strong>
+                          {period === "month"
+                            ? Number(d.slice(8))
+                            : dateLabel(d)}
+                        </strong>
                       </th>
                     ))}
                     <th>Yhteensä</th>
@@ -1442,7 +1544,10 @@ function ReviewDesk({ profile, api }) {
                             status === "all" ||
                             day.some((r) => r.status === status);
                         return (
-                          <td key={d} className={d === today() ? "today" : ""}>
+                          <td
+                            key={d}
+                            className={`${[0, 6].includes(new Date(`${d}T12:00:00Z`).getUTCDay()) ? "weekend" : ""} ${d === today() ? "today" : ""}`}
+                          >
                             <button
                               className={`s-cell ${state} ${highlight ? "" : "dim"}`}
                               onClick={() => {
@@ -1451,6 +1556,7 @@ function ReviewDesk({ profile, api }) {
                                 setError("");
                               }}
                               aria-label={`${w.full_name}, ${dateLabel(d)}, ${dayTotal(day)} tuntia, ${studioText("fi", state)}`}
+                              title={`${dateLabel(d)} · ${day.length ? `${dayTotal(day)} h · ${studioText("fi", state)}` : "Ei kirjausta"}`}
                             >
                               <strong>
                                 {day.length ? dayTotal(day) : "—"}
@@ -1534,14 +1640,21 @@ function ReviewDesk({ profile, api }) {
                             disabled={busy || data.loading}
                             onChange={(e) => changeLittera(r, e.target.value)}
                           >
-                            {!data.litteras.some(
-                              (l) => l.id === r.littera_id,
-                            ) && (
-                              <option value={r.littera_id}>
-                                {r.litteras?.code} · {r.litteras?.name}
+                            {!litterasForSite(
+                              data.sites,
+                              data.litteras,
+                              r.worksite_id,
+                            ).some((l) => l.id === r.littera_id) && (
+                              <option value={r.littera_id} disabled>
+                                {r.litteras?.code} · {r.litteras?.name} (aiempi
+                                kirjaus)
                               </option>
                             )}
-                            {data.litteras.map((l) => (
+                            {litterasForSite(
+                              data.sites,
+                              data.litteras,
+                              r.worksite_id,
+                            ).map((l) => (
                               <option key={l.id} value={l.id}>
                                 {l.code} · {l.name}
                               </option>

@@ -3,6 +3,7 @@ import {supabase} from './main.jsx';
 import {languageLocale,languageOptions,translatedLitteraName,workerText} from './i18n.js';
 import TimeStudio from './TimeStudio.jsx';
 import PortalRoot from './PortalRoot.jsx';
+import SiteSettings from './Worksites.jsx';
 
 const roleNames={admin:'Pääkäyttäjä',foreman:'Työnjohtaja',worker:'Työntekijä'};
 const roleLabel=profile=>profile.role==='admin'&&profile.is_foreman?'Pääkäyttäjä · Työnjohtaja':roleNames[profile.role];
@@ -50,7 +51,7 @@ function Login(){
 function ResetPassword({onDone}){const [password,setPassword]=useState(''),[confirm,setConfirm]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false);async function save(e){e.preventDefault();setError('');if(password.length<8)return setError('Salasanassa pitää olla vähintään 8 merkkiä.');if(password!==confirm)return setError('Salasanat eivät vastaa toisiaan.');setBusy(true);const {error}=await supabase.auth.updateUser({password});if(error)setError(error.message);else onDone();setBusy(false)}return <main className="login"><form className="login-card" onSubmit={save}><div className="logo">✓</div><h1>Valitse uusi salasana</h1><p className="muted">Anna vähintään kahdeksan merkkiä pitkä salasana.</p><div className="field"><label>Uusi salasana</label><input type="password" value={password} onChange={e=>setPassword(e.target.value)} minLength="8" required/></div><div className="field" style={{marginTop:14}}><label>Uusi salasana uudelleen</label><input type="password" value={confirm} onChange={e=>setConfirm(e.target.value)} minLength="8" required/></div>{error&&<div className="notice error">{error}</div>}<button className="primary full" style={{marginTop:18}} disabled={busy}>{busy?'Tallennetaan…':'Tallenna uusi salasana'}</button></form></main>}
 
 function Shell({profile,onLogout}){
- return <TimeStudio profile={profile} db={supabase} onLogout={onLogout} legacy={{worksites:()=> <Worksites orgId={profile.organization_id}/>,employees:()=> <Employees orgId={profile.organization_id}/>,translations:()=> <LitteraTranslations orgId={profile.organization_id}/>,periods:()=> <PayrollPeriods profile={profile}/>}}/>;
+ return <TimeStudio profile={profile} db={supabase} onLogout={onLogout} legacy={{worksites:()=> <SiteSettings db={supabase} orgId={profile.organization_id}/>,employees:()=> <Employees orgId={profile.organization_id}/>,translations:()=> <LitteraTranslations orgId={profile.organization_id}/>,periods:()=> <PayrollPeriods profile={profile}/>}}/>;
 }
 
 function DisabledAccount({onLogout}){return <main className="login"><div className="login-card"><div className="logo">!</div><h2>Käyttäjätunnus on poistettu käytöstä</h2><p className="muted">Ota yhteyttä pääkäyttäjään.</p><button className="secondary full" onClick={onLogout}>Kirjaudu ulos</button></div></main>}
