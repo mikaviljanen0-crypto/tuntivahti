@@ -1,4 +1,40 @@
-# TJT portal account-link pilot
+# TJT portal account linking
+
+## 1.1: expansion to existing TJT managers
+
+The owner confirmed the 1.0 pilot worked, including portal logout/re-login,
+and authorized rollout to other foremen on 2026-11-11. The 1.1 upgrade:
+
+- Preserves the existing encryption key and refresh grants without overwriting them.
+- Pins `organizationId` to the already-verified pilot binding, never to an arbitrary
+  new sign-in. Migration refuses an absent/mismatched pilot binding.
+- Allows active portal users with existing TJT-company access to link their own
+  active Supabase `foreman` or `admin` account in that exact organization. No new
+  Supabase roles or users are created. Workers and other organizations are denied.
+- Uses editable email on first linking and a globally serialized uniqueness check:
+  a Supabase user UUID cannot be bound to another portal user simultaneously.
+- Keeps authorization on every request. Admin-only proxy routes stay admin-only.
+  This release does not add a separate portal `Tunnit` permission; existing portal
+  TJT access and the existing Supabase manager role are both required.
+- Changes only the card, bridge/UI files, package manifest and public configuration.
+  No portal user schema, password, firewall, Tailscale or Supabase migration changes.
+
+Build using `node portal/build-foremen.cjs <original-1.0-package> <new-output-dir>`.
+`Paivita-Tunnit-Tyonjohto.ps1` checks exact baseline hashes, backups and scheduled
+tasks; rollback restores program/configuration files but deliberately never rolls
+back live rotating refresh grants. The original 1.0 package is unchanged.
+
+Verification: 65 automated tests pass, including different manager emails,
+worker/cross-tenant rejection, tenant migration, duplicate/racing links, per-user
+tokens/signout isolation, admin-route denial and preservation of the pilot grant.
+The exact installed portal Auth contract, package hashes/card behavior/syntax and
+both builds are checked. The browser fixture verifies editable own-account email,
+the foreman's restricted navigation, logout denial and reopening the linked view
+after simulated portal login. No real credentials or production data are used.
+Windows installation and the first additional real manager linking still require
+the user to run the package on TJT-PALVELIN.
+
+## Original 1.0 pilot design and verification
 
 The user story is portal login → Tunnit card → same-origin authenticated BFF →
 the existing Supabase user's RLS-protected data → the redesigned Tuntivahti UI.

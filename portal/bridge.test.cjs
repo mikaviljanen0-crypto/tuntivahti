@@ -2,7 +2,7 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),os=require('node:os'),path=require('node:path'),crypto=require('node:crypto'),{Readable}=require('node:stream');
 const {Bridge,Vault,publicConfig}=require('./bridge.cjs');
 const uid='11111111-1111-4111-8111-111111111111',org='22222222-2222-4222-8222-222222222222',email='mika.viljanen@julkisivutekniikka.fi';
-function setup(){
+function setup(foremen=false){
  let now=1000000;const cookie='a'.repeat(43),key=crypto.createHash('sha256').update(cookie).digest('hex');
  const user={id:'portal-user',username:'mika.viljanen',owner:true,active:true,grants:{tjt:{laskenta:'edit'}}},s={uid:user.id,last:now,expires:now+28800000,csrf:'test-csrf'};
  const auth={users:[user],sessions:new Map([[key,s]]),session(){},audit(){}};
@@ -17,7 +17,7 @@ function setup(){
   else value=[{id:'test-row'}];
   return Response.json(value,{headers:{'content-range':'0-0/1','set-cookie':'must-not-be-forwarded=secret'}});
  };
- const bridge=new Bridge({auth,hosts:new Set(['portal.test']),config:{url:'https://abcdefghijklmnopqrst.supabase.co',key:'sb_publishable_test',pilotUsername:user.username,expectedEmail:email},vault,publicDir:dir,fetchImpl:fake,clock:()=>now});
+ const bridge=new Bridge({auth,hosts:new Set(['portal.test']),config:{url:'https://abcdefghijklmnopqrst.supabase.co',key:'sb_publishable_test',pilotUsername:user.username,expectedEmail:email,...(foremen?{mode:'foremen',organizationId:org}:{})},vault,publicDir:dir,fetchImpl:fake,clock:()=>now});
  function request(url='/tunnit/session',method='GET',data,headers={}){const req=Readable.from(data===undefined?[]:[Buffer.from(JSON.stringify(data))]);Object.assign(req,{url,method,headers:{host:'portal.test',cookie:'__Host-tjt_session='+cookie,'sec-fetch-site':'same-origin',...(method==='GET'?{}:{origin:'https://portal.test','x-tjt-csrf':s.csrf,'content-type':'application/json'}),...headers}});return req;}
  async function run(url,method,data,headers){const req=request(url,method,data,headers),res={status:200,headers:{},setHeader(k,v){this.headers[k.toLowerCase()]=v;},writeHead(status,h={}){this.status=status;for(const[k,v]of Object.entries(h))this.setHeader(k,v);},end(v){this.bytes=Buffer.from(v||'');}};const handled=await bridge.handle(req,res);return {...res,handled,json:()=>JSON.parse(res.bytes.toString()||'null')};}
  async function link(){const r=await run('/tunnit/link','POST',{email,password:'test-only-password',consent:true});assert.equal(r.status,200,r.bytes.toString());return r;}
@@ -32,7 +32,7 @@ test('anonymous and non-pilot portal users cannot open any bridge data',async()=
  const f=setup();assert.equal((await f.run('/tunnit/session','GET',undefined,{cookie:''})).status,401);
  f.user.username='other';assert.equal((await f.run()).status,403);assert.equal(f.calls.length,0);
 });
-test('unlinked status gives only expected email and CSRF, not tokens',async()=>{const f=setup(),r=await f.run();assert.deepEqual(r.json(),{linked:false,csrf:f.s.csrf,email});assert.equal(f.calls.length,0);});
+test('unlinked status gives only expected email and CSRF, not tokens',async()=>{const f=setup(),r=await f.run();assert.deepEqual(r.json(),{linked:false,csrf:f.s.csrf,email,emailLocked:true});assert.equal(f.calls.length,0);});
 test('link requires consent, same origin and exact portal session CSRF',async()=>{
  for(const overrides of [{origin:'https://other.test'},{'x-tjt-csrf':'bad'},{'sec-fetch-site':'cross-site'},{host:'evil.test'}]){const f=setup();assert.equal((await f.run('/tunnit/link','POST',{email,password:'test',consent:true},overrides)).status,403);assert.equal(f.calls.length,0);}
  const f=setup();assert.equal((await f.run('/tunnit/link','POST',{email,password:'test'})).status,400);assert.equal(f.calls.length,0);
@@ -84,3 +84,52 @@ test('unlink removes persistent credentials and revokes only the linked Supabase
 });
 test('read-only portal rejects mutations before touching Supabase',async()=>{const f=setup();f.bridge.readOnly=true;assert.equal((await f.run('/tunnit/link','POST',{email,password:'test',consent:true})).status,403);assert.equal(f.calls.length,0);});
 test('public login and unrelated portal routes are not intercepted',async()=>{const f=setup();assert.equal((await f.run('/portal-api/login','POST',{username:'test'})).handled,false);assert.equal((await f.run('/laatuvahti/')).handled,false);});
+test('foremen mode accepts another active manager and their own email, not only the pilot',async()=>{
+ const f=setup(true);f.user.owner=false;f.user.username='test.foreman';f.identity.user.email=f.identity.profile.email='foreman@example.test';f.identity.profile.role='foreman';
+ const status=await f.run();assert.equal(status.json().emailLocked,false);assert.equal(status.json().email,'');
+ const r=await f.run('/tunnit/link','POST',{email:'  Foreman@example.test  ',password:'test',consent:true});assert.equal(r.status,200,r.bytes.toString());
+ assert.equal(f.vault.read(f.user.id).email,'foreman@example.test');assert.equal((await f.run()).json().linked,true);
+});
+test('foremen mode blocks workers, inactive managers, another tenant and forged email',async()=>{
+ for(const change of [f=>f.identity.profile.role='worker',f=>f.identity.profile.active=false,f=>f.identity.profile.organization_id='33333333-3333-4333-8333-333333333333',f=>f.identity.user.email='someone-else@example.test']){
+  const f=setup(true);change(f);const r=await f.run('/tunnit/link','POST',{email,password:'test',consent:true});assert.equal(r.status,403);assert.equal(f.vault.read(f.user.id),null);
+ }
+});
+test('foremen mode is tenant pinned and refuses missing or invalid organization id',()=>{
+ const f=setup(true);for(const organizationId of ['',undefined,'invalid'])assert.throws(()=>new Bridge({...f.bridge,config:{...f.bridge.config,organizationId}}));
+});
+test('existing pilot grant keeps working after switching to foremen mode without a new password',async()=>{
+ const f=setup();await f.link();const before=fs.readFileSync(f.vault.file(f.user.id));f.bridge.foremen=true;f.bridge.config.organizationId=org;
+ const r=await f.run();assert.equal(r.json().linked,true);assert.deepEqual(fs.readFileSync(f.vault.file(f.user.id)),before);
+ assert.equal(f.calls.filter(c=>c.url.includes('grant_type=password')).length,1);
+});
+test('another portal account cannot link an already-linked Supabase identity',async()=>{
+ const f=setup(true);await f.link();const second={...f.user,id:'second-portal-user',username:'other.foreman',owner:false};const cookie='b'.repeat(43);f.auth.users.push(second);f.auth.sessions.set(crypto.createHash('sha256').update(cookie).digest('hex'),{...f.s,uid:second.id});
+ const r=await f.run('/tunnit/link','POST',{email,password:'test',consent:true},{cookie:'__Host-tjt_session='+cookie});assert.equal(r.status,409);assert.equal(f.vault.read(second.id),null);assert.ok(f.vault.read(f.user.id));
+});
+test('parallel linking from two portal accounts permits only one binding of the same identity',async()=>{
+ const f=setup(true);const second={...f.user,id:'second-portal-user',username:'other.foreman',owner:false};const cookie='b'.repeat(43);f.auth.users.push(second);f.auth.sessions.set(crypto.createHash('sha256').update(cookie).digest('hex'),{...f.s,uid:second.id});
+ const data={email,password:'test',consent:true};const results=await Promise.all([f.run('/tunnit/link','POST',data),f.run('/tunnit/link','POST',data,{cookie:'__Host-tjt_session='+cookie})]);assert.deepEqual(results.map(r=>r.status).sort(),[200,409]);
+});
+test('foreman cannot call admin functions or password recovery, even with a valid link',async()=>{
+ const f=setup(true);f.identity.profile.role='foreman';await f.link();
+ for(const route of ['functions/v1/create-user','auth/v1/recover'])assert.equal((await f.run('/tunnit/supabase/'+route,'POST',{})).status,403);
+ assert.ok(!f.calls.some(c=>c.url.includes('/functions/')||c.url.includes('/recover')));
+});
+test('foreman revocation, worker downgrade and loss of TJT access block subsequent data',async()=>{
+ for(const change of [f=>f.auth.sessions.delete(f.key),f=>f.user.active=false,f=>f.user.grants.tjt={laskenta:'none'},f=>f.identity.profile.role='worker']){
+  const f=setup(true);f.user.owner=false;f.user.username='test.foreman';f.identity.profile.role='foreman';await f.link();change(f);
+  assert.ok([401,403].includes((await f.run('/tunnit/supabase/rest/v1/time_entries')).status));assert.ok(!f.calls.some(c=>c.url.includes('/time_entries')));
+ }
+});
+test('two managers retain independent bound tokens, refresh grants and signouts',async()=>{
+ const f=setup(true),cookie='b'.repeat(43),second={...f.user,id:'second-portal-user',username:'other.foreman',owner:false};
+ f.auth.users.push(second);f.auth.sessions.set(crypto.createHash('sha256').update(cookie).digest('hex'),{...f.s,uid:second.id});
+ const people=[{id:uid,email,token:'access-one',refresh:'refresh-one'},{id:'33333333-3333-4333-8333-333333333333',email:'foreman@example.test',token:'access-two',refresh:'refresh-two'}];
+ f.bridge.fetch=async(url,opts)=>{f.calls.push({url,options:opts});const u=new URL(url);if(u.pathname==='/auth/v1/token'){const b=JSON.parse(opts.body),p=people.find(p=>p.email===b.email||p.refresh===b.refresh_token);return Response.json({access_token:p.token,refresh_token:p.refresh,expires_in:3600,user:{id:p.id,email:p.email}});}if(u.pathname==='/auth/v1/logout')return new Response(null,{status:204});const p=people.find(p=>'Bearer '+p.token===opts.headers.Authorization);assert.ok(p);if(u.pathname==='/auth/v1/user')return Response.json({id:p.id,email:p.email});if(u.pathname==='/rest/v1/profiles')return Response.json([{id:p.id,email:p.email,organization_id:org,role:'foreman',active:true}]);return Response.json([{authorizedUser:p.id}]);};
+ await f.link();const h={cookie:'__Host-tjt_session='+cookie};assert.equal((await f.run('/tunnit/link','POST',{email:people[1].email,password:'test',consent:true},h)).status,200);
+ assert.equal((await f.run('/tunnit/supabase/rest/v1/time_entries')).json()[0].authorizedUser,uid);
+ assert.equal((await f.run('/tunnit/supabase/rest/v1/time_entries','GET',undefined,h)).json()[0].authorizedUser,people[1].id);
+ f.auth.sessions.delete(f.key);assert.equal((await f.run()).status,401);assert.equal((await f.run('/tunnit/session','GET',undefined,h)).json().linked,true);
+ assert.notEqual(f.vault.read(f.user.id).refreshToken,f.vault.read(second.id).refreshToken);
+});
