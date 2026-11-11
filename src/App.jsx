@@ -1,6 +1,7 @@
 import React,{useEffect,useMemo,useState} from 'react';
 import {supabase} from './main.jsx';
 import {languageLocale,languageOptions,translatedLitteraName,workerText} from './i18n.js';
+import TimeStudio from './TimeStudio.jsx';
 
 const roleNames={admin:'Pääkäyttäjä',foreman:'Työnjohtaja',worker:'Työntekijä'};
 const roleLabel=profile=>profile.role==='admin'&&profile.is_foreman?'Pääkäyttäjä · Työnjohtaja':roleNames[profile.role];
@@ -45,9 +46,7 @@ function Login(){
 function ResetPassword({onDone}){const [password,setPassword]=useState(''),[confirm,setConfirm]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false);async function save(e){e.preventDefault();setError('');if(password.length<8)return setError('Salasanassa pitää olla vähintään 8 merkkiä.');if(password!==confirm)return setError('Salasanat eivät vastaa toisiaan.');setBusy(true);const {error}=await supabase.auth.updateUser({password});if(error)setError(error.message);else onDone();setBusy(false)}return <main className="login"><form className="login-card" onSubmit={save}><div className="logo">✓</div><h1>Valitse uusi salasana</h1><p className="muted">Anna vähintään kahdeksan merkkiä pitkä salasana.</p><div className="field"><label>Uusi salasana</label><input type="password" value={password} onChange={e=>setPassword(e.target.value)} minLength="8" required/></div><div className="field" style={{marginTop:14}}><label>Uusi salasana uudelleen</label><input type="password" value={confirm} onChange={e=>setConfirm(e.target.value)} minLength="8" required/></div>{error&&<div className="notice error">{error}</div>}<button className="primary full" style={{marginTop:18}} disabled={busy}>{busy?'Tallennetaan…':'Tallenna uusi salasana'}</button></form></main>}
 
 function Shell({profile,onLogout}){
- const [tab,setTab]=useState(profile.role==='worker'?'hours':'dashboard');
- const worker=profile.role==='worker';
- return <><header className="topbar"><div className="brand">✓ Tuntivahti</div><div><span className="user-label">{profile.full_name} · {worker?workerText(profile.language,'worker'):roleLabel(profile)}</span><button className="logout" onClick={onLogout}>{worker?workerText(profile.language,'logout'):'Kirjaudu ulos'}</button></div></header><main className="container"><div className="heading"><div><div className="eyebrow">{worker?workerText(profile.language,'worker'):roleLabel(profile)}</div><h1>{worker?profile.full_name:(profile.organizations?.name||'Tuntivahti')}</h1><p className="muted">{worker?(profile.employers?.name||'Työnantajaa ei ole määritetty'):'Työaika kohdistetaan työmaanumerolle ja litteralle.'}</p></div></div>{profile.role==='admin'?<Admin profile={profile} tab={tab} setTab={setTab}/>:profile.role==='worker'?<Worker profile={profile} tab={tab} setTab={setTab}/>:<Foreman profile={profile}/>}</main></>;
+ return <TimeStudio profile={profile} db={supabase} onLogout={onLogout} legacy={{worksites:()=> <Worksites orgId={profile.organization_id}/>,employees:()=> <Employees orgId={profile.organization_id}/>,translations:()=> <LitteraTranslations orgId={profile.organization_id}/>,periods:()=> <PayrollPeriods profile={profile}/>}}/>;
 }
 
 function DisabledAccount({onLogout}){return <main className="login"><div className="login-card"><div className="logo">!</div><h2>Käyttäjätunnus on poistettu käytöstä</h2><p className="muted">Ota yhteyttä pääkäyttäjään.</p><button className="secondary full" onClick={onLogout}>Kirjaudu ulos</button></div></main>}
