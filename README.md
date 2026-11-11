@@ -1,5 +1,25 @@
 # Tuntivahti
 
+## Uusi käyttöliittymä – testiversio 11.11.2026
+
+Uusi mobiiliin suunniteltu työntekijänäkymä ja työnjohdon viikkotaulukko käyttävät nykyistä Supabase-tietokantaa ja nykyisiä kirjautumistunnuksia. Työntekijän selain ei tarvitse Tailscalea. Portaaliin lisätään tavallinen linkki tuntien tarkistukseen; Tailscale jää portaalin omaksi käyttörajaksi.
+
+- Työntekijälle Tänään, Oma viikko ja Korjattavaa, kellonaikojen pikavalinnat sekä useita työmaita samalle päivälle.
+- Työnjohdolle viikkotaulukko, päiväkohtainen hyväksyntä/palautus, litteran korjaus ja huomautukset. Työnjohtaja näkee omat työmaansa, pääkäyttäjä kaikki.
+- Raportit työntekijöittäin, työmaittain, yrityksittäin ja litteroittain; CSV ja selaimen PDF-tulostus. Oletuksena kaikki hyväksyntätilat, kuten aiemmin. Laskutushintoja ei näytetä uudessa raportissa.
+- Ruokatauon kohdistus tehdään koko työntekijäpäivälle ennen raportin rajauksia. Suljettujen kausien tietokantalukot säilyvät.
+- Nykyiset käyttäjähallinta-, työmaa-, käännös- ja palkkakausitoiminnot säilyvät.
+
+Tämä muutos ei suorita SQL-migraatioita eikä siirrä tai muuta olemassa olevia kirjauksia. Käyttöönotto ja testauksen rajat: [docs/uudistus.md](docs/uudistus.md).
+
+Kehitystesti kuvitteellisella aineistolla: `/?preview=worker` tai `/?preview=manager`. Nämä reitit toimivat vain kehityspalvelimessa; testiä tai kirjautumisen ohitusta ei sisälly tuotantokäännökseen. Mobiilin 390 px testikehys on `/qa/mobile.html`.
+
+```bash
+npm ci
+npm test
+npm run build
+```
+
 ## Version 20 – palkkakuukauden sulkeminen
 
 - Pääkäyttäjän `Palkkakuukaudet`-valikko näyttää kuukauden tunnit, hyväksymättömät työvaiheet ja mahdolliset arkipäivät ilman kirjauksia.
