@@ -35,7 +35,7 @@ test("Postgres enforces site code choices without rewriting history or bypassing
     await db.exec(
       await readFile(
         new URL(
-          "../supabase/migrations/20261111120148_worksite_littera_selection.sql",
+          "../supabase/migrations/20261111122121_worksite_littera_selection.sql",
           import.meta.url,
         ),
         "utf8",

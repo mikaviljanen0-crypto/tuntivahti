@@ -1,3 +1,4 @@
+-- Applied with Supabase migration version 20261111122121 (CLI-created source, version aligned after apply).
 -- Additive upgrade. Existing sites intentionally keep NULL (review pending).
 -- No time entries, code names, memberships, auth or payroll data are rewritten.
 alter table public.worksites add column allowed_littera_ids uuid[];

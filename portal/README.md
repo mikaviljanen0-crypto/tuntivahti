@@ -13,7 +13,7 @@ Build: `node portal/build-ui-update.cjs <SSO-1.1-package> <new-output-directory>
 Run `Paivita-Tunnit-1.2.ps1` on the Windows server. Windows Scheduled Tasks and real
 portal rendering remain subject to installation and the user's signed-in check.
 
-Database migration: `supabase/migrations/20261111120148_worksite_littera_selection.sql`.
+Database migration: `supabase/migrations/20261111122121_worksite_littera_selection.sql`.
 Apply centrally once before releasing either browser build. The migration adds a
 nullable allowlist to existing worksites; new sites must provide a nonempty list.
 NULL is explicitly **review pending**, not an approved inference from old hours.
@@ -22,6 +22,19 @@ new/reallocated work by an invoker trigger under existing RLS. Approval/note-onl
 updates preserve history; moving or extending an old allocation must use an
 allowed code. An advisory lock serializes allowlist changes with allocation checks.
 No time rows, code names, profiles, roles or payroll settings are rewritten.
+
+Applied and verified on 2026-11-11: 1,582 time entries, exact full-row checksum
+unchanged, all 12 sites still pending review, original 25 litteras unchanged.
+Both triggers enabled; existing RLS remains enabled. New invoker trigger functions
+have empty search paths and no anon/authenticated direct execution privilege.
+86 tests passed, including bundle-only installer boundaries and retained SSO files.
+
+Pre-existing Supabase security advisories were recorded before this release and
+are not addressed by the feature migration: eight existing SECURITY DEFINER
+functions executable by anon/authenticated and leaked-password protection disabled.
+Review these separately rather than changing authentication/RLS as a side effect:
+https://supabase.com/docs/guides/database/database-linter?lint=0028_anon_security_definer_function_executable
+https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection
 
 The code selector uses the existing Tuntivahti catalog. The Snedo target chart
 was compared, but this release intentionally does not silently rename old codes
