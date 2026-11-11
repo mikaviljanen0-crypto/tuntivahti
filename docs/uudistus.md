@@ -21,6 +21,12 @@ Lisää portaalin olemassa olevaan sovellusrekisteriin työnjohdon/pääkäyttä
 
 ## Käyttöönotto
 
+### Esikatselun asetusten korjaus 11.11.2026
+
+Vercelin Supabase-yhteysasetukset oli rajattu vain Production-ympäristöön, minkä vuoksi ensimmäinen Preview-julkaisu näytti puuttuvien asetusten ilmoituksen. Preview käyttää nykyisiä yhteysasetuksia sekä erillistä `VITE_READ_ONLY_PREVIEW=true` -asetusta. Tämä lisää näkyvän tarkistusversion ilmoituksen ja estää sovelluksen Supabase-kirjoituspyynnöt ennen verkkoyhteyttä. Sähköposti-/puhelinnumerokirjautuminen, istunnon uusiminen ja uloskirjautuminen ovat sallittuja. Tuntien, hyväksyntöjen, käyttäjien, palkkakausien ja asiakirjojen muutokset sekä salasanan muutokset/palautus ovat estettyjä esikatselussa.
+
+Kyseessä on käyttöliittymän vahinkotallennuksia ehkäisevä tila, ei erillinen testitietokanta eikä uusi palvelinpuolen käyttöoikeus. Nykyiset Supabase RLS-oikeudet säilyvät. Tuotantoon ei aseteta `VITE_READ_ONLY_PREVIEW=true` -muuttujaa. Testit kattavat myös sen, ettei estetty kutsu tavoita varsinaista verkkoyhteyttä.
+
 1. Tarkista erillinen GitHub-haara ja sen Vercel-esikatselu ennen päähaaraan yhdistämistä.
 2. Varmista Vercelin Preview-ympäristön `VITE_SUPABASE_URL` ja `VITE_SUPABASE_PUBLISHABLE_KEY` (tai nykyinen `VITE_SUPABASE_ANON_KEY`). Älä käytä service role -avainta selaimessa.
 3. Jos esikatselu osoittaa nykyiseen Supabaseen, sen kirjautuneet käyttäjät käsittelevät **oikeita tuotantokirjauksia**. Esikatselun URL ei itsessään eristä tietokantaa. Käytä kirjoittaviin hyväksymistesteihin erillistä testiprojektia tai nimenomaisesti sovittua testikäyttäjää/-aineistoa.

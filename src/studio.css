@@ -439,6 +439,8 @@ body {
   font-size: 12px;
   font-weight: 700;
 }
+.s-live-preview-warning { position:sticky;top:0;z-index:100;background:#fff0c7;color:#543c0d;padding:12px 20px;font-size:13px;line-height:1.5;text-align:center; }
+@media print { .s-live-preview-warning { display:none; } }
 .s-loading {
   padding: 50px;
   text-align: center;
