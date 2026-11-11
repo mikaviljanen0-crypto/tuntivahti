@@ -28,6 +28,16 @@ test('public config rejects admin/secret keys and foreign URLs',()=>{
  assert.throws(()=>publicConfig({url:'https://abcdefghijklmnopqrst.supabase.co',key:'sb_secret_x'}));
  assert.throws(()=>publicConfig({url:'https://abcdefghijklmnopqrst.supabase.co',key:'x.'+Buffer.from(JSON.stringify({role:'service_role'})).toString('base64url')+'.x'}));
 });
+test('net-minute computed field passes through the existing authenticated table route, without RPC access',async()=>{
+ const f=setup(true);await f.link();
+ const query='select=id,paidMinutes:review_net_minutes&work_date=gte.2026-11-01';
+ const r=await f.run('/tunnit/supabase/rest/v1/time_entries?'+query);
+ assert.equal(r.status,200);
+ const call=f.calls.find(c=>c.url.includes('/time_entries?'));
+ assert.equal(new URL(call.url).searchParams.get('select'),'id,paidMinutes:review_net_minutes');
+ assert.equal(call.options.headers.Authorization,'Bearer secret-access');
+ assert.equal((await f.run('/tunnit/supabase/rest/v1/rpc/review_net_minutes')).status,403);
+});
 test('anonymous and non-pilot portal users cannot open any bridge data',async()=>{
  const f=setup();assert.equal((await f.run('/tunnit/session','GET',undefined,{cookie:''})).status,401);
  f.user.username='other';assert.equal((await f.run()).status,403);assert.equal(f.calls.length,0);

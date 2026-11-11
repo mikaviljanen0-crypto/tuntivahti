@@ -51,9 +51,15 @@ export function makeTimeApi(db, profile) {
         employers: results[4].data || [],
       };
     },
-    entries(from, to) {
-      return allPages(() => {
-        let q = org(db.from("time_entries").select(relation))
+    async entries(from, to, net = false) {
+      const rows = await allPages(() => {
+        let q = org(
+          db
+            .from("time_entries")
+            .select(
+              net ? `${relation},paidMinutes:review_net_minutes` : relation,
+            ),
+        )
           .gte("work_date", from)
           .lte("work_date", to)
           .order("work_date")
@@ -61,6 +67,15 @@ export function makeTimeApi(db, profile) {
         if (profile.role === "worker") q = q.eq("employee_id", profile.id);
         return q;
       });
+      // Never silently label gross hours as net when the database is outdated.
+      if (
+        net &&
+        rows.some((r) => !Number.isInteger(r.paidMinutes) || r.paidMinutes < 0)
+      )
+        throw new Error(
+          "Nettotunteja ei saatu ladattua. Päivitä näkymä ja yritä uudelleen.",
+        );
+      return rows;
     },
     notes(from, to) {
       return allPages(() => {

@@ -12,6 +12,7 @@ import {
   allocateEntries,
   formatHours as hours,
   grossMinutes,
+  compareWorkersBySurname,
   dayState,
   validateEntry,
   filterEntries,
@@ -157,7 +158,7 @@ function Empty({ title, detail, children }) {
     </div>
   );
 }
-function useRecords(api, from, to) {
+function useRecords(api, from, to, net = false) {
   const [data, setData] = useState({
       entries: [],
       notes: [],
@@ -174,7 +175,11 @@ function useRecords(api, from, to) {
     let active = true;
     setLoading(true);
     setError("");
-    Promise.all([api.bootstrap(), api.entries(from, to), api.notes(from, to)])
+    Promise.all([
+      api.bootstrap(),
+      api.entries(from, to, net),
+      api.notes(from, to),
+    ])
       .then(([base, entries, notes]) => {
         if (active) setData({ ...base, entries, notes });
       })
@@ -187,7 +192,7 @@ function useRecords(api, from, to) {
     return () => {
       active = false;
     };
-  }, [api, from, to, version]);
+  }, [api, from, to, version, net]);
   return { ...data, loading, error, reload: () => setVersion((x) => x + 1) };
 }
 export function DayDialog({ children, title, onClose }) {
@@ -1193,7 +1198,7 @@ function ReviewDesk({ profile, api }) {
     [error, setError] = useState(""),
     [message, setMessage] = useState("");
   const dates = period === "month" ? monthDates(date) : weekDates(date),
-    data = useRecords(api, dates[0], dates.at(-1));
+    data = useRecords(api, dates[0], dates.at(-1), true);
   const sites = data.sites.filter(
       (s) => profile.role === "admin" || s.foreman_id === profile.id,
     ),
@@ -1204,14 +1209,16 @@ function ReviewDesk({ profile, api }) {
       (site === "all" || r.worksite_id === site) &&
       (employer === "all" || r.profiles?.employer_id === employer),
   );
-  const workers = data.workers.filter(
-    (w) =>
-      (w.active !== false || rows.some((r) => r.employee_id === w.id)) &&
-      (employer === "all" || w.employer_id === employer) &&
-      w.full_name.toLocaleLowerCase().includes(search.toLocaleLowerCase()) &&
-      (status === "all" ||
-        rows.some((r) => r.employee_id === w.id && r.status === status)),
-  );
+  const workers = data.workers
+    .filter(
+      (w) =>
+        (w.active !== false || rows.some((r) => r.employee_id === w.id)) &&
+        (employer === "all" || w.employer_id === employer) &&
+        w.full_name.toLocaleLowerCase().includes(search.toLocaleLowerCase()) &&
+        (status === "all" ||
+          rows.some((r) => r.employee_id === w.id && r.status === status)),
+    )
+    .sort(compareWorkersBySurname);
   const selected = selection
     ? rows.filter(
         (r) =>
@@ -1236,7 +1243,7 @@ function ReviewDesk({ profile, api }) {
         .map((r) => `${r.employee_id}|${r.work_date}`),
     ).size;
   const dayTotal = (rows) =>
-    hours(rows.reduce((s, r) => s + grossMinutes(r), 0) / 60);
+    hours(rows.reduce((s, r) => s + r.paidMinutes, 0) / 60);
   const noteValue = (group) =>
     note[group.rows[0].worksite_id] ??
     data.notes.find(
@@ -1327,13 +1334,13 @@ function ReviewDesk({ profile, api }) {
         <article>
           <span>
             <Icon name="clock" />
-            Kirjattu työaika
+            Nettotunnit
           </span>
           <strong>
-            {dayTotal(rows)}
+            {data.loading || data.error ? "—" : dayTotal(rows)}
             <small> h</small>
           </strong>
-          <p>Ennen ruokataukovähennystä</p>
+          <p>Ruokataukovähennyksen jälkeen</p>
         </article>
         <article className="accent">
           <span>
@@ -1501,7 +1508,10 @@ function ReviewDesk({ profile, api }) {
                 <thead>
                   <tr>
                     <th>
-                      Työntekijä <small>{workers.length} henkilöä</small>
+                      Työntekijä{" "}
+                      <small>
+                        {workers.length} henkilöä · sukunimen mukaan
+                      </small>
                     </th>
                     {dates.map((d) => (
                       <th
@@ -1555,8 +1565,8 @@ function ReviewDesk({ profile, api }) {
                                 setNote({});
                                 setError("");
                               }}
-                              aria-label={`${w.full_name}, ${dateLabel(d)}, ${dayTotal(day)} tuntia, ${studioText("fi", state)}`}
-                              title={`${dateLabel(d)} · ${day.length ? `${dayTotal(day)} h · ${studioText("fi", state)}` : "Ei kirjausta"}`}
+                              aria-label={`${w.full_name}, ${dateLabel(d)}, ${dayTotal(day)} nettotuntia, ${studioText("fi", state)}`}
+                              title={`${dateLabel(d)} · ${day.length ? `${dayTotal(day)} h netto · ${studioText("fi", state)}` : "Ei kirjausta"}`}
                             >
                               <strong>
                                 {day.length ? dayTotal(day) : "—"}
@@ -1593,8 +1603,8 @@ function ReviewDesk({ profile, api }) {
                 <Badge state="draft" />
               </div>
               <span>
-                Ei kirjausta ei tarkoita poissaoloa. Taulukon ajat ovat ennen
-                taukovähennystä.
+                Nettotunnit ruokataukovähennyksen jälkeen. Ei kirjausta ei
+                tarkoita poissaoloa.
               </span>
             </div>
           </>
@@ -1623,6 +1633,21 @@ function ReviewDesk({ profile, api }) {
                   <h3>
                     {group.site?.number} · {group.site?.name}
                   </h3>
+                  <p className="s-muted">
+                    Netto {dayTotal(group.rows)} h · Kirjattu{" "}
+                    {hours(
+                      group.rows.reduce((sum, r) => sum + grossMinutes(r), 0) /
+                        60,
+                    )}{" "}
+                    h{" · "}Ruokatauko{" "}
+                    {hours(
+                      group.rows.reduce(
+                        (sum, r) => sum + grossMinutes(r) - r.paidMinutes,
+                        0,
+                      ),
+                    )}{" "}
+                    min
+                  </p>
                   {group.rows.map((r) => (
                     <div className="s-review-detail" key={r.id}>
                       <strong>
