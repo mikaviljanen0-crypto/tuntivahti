@@ -4,6 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import "../styles.css";
 import App from "./App.jsx";
 import { createPreviewFetch } from "./preview-guard.js";
+import { makePortalClient } from "./portal-client.js";
 
 const url = import.meta.env.VITE_SUPABASE_URL;
 const key =
@@ -11,7 +12,9 @@ const key =
   import.meta.env.VITE_SUPABASE_ANON_KEY;
 const readOnlyPreview = import.meta.env.VITE_READ_ONLY_PREVIEW === "true";
 export const supabase =
-  url && key
+  import.meta.env.VITE_PORTAL_MODE === "true"
+    ? makePortalClient(createClient, {origin:window.location.origin})
+    : url && key
     ? createClient(
         url,
         key,

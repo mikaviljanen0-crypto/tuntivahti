@@ -1,0 +1,65 @@
+TJT-Portaali – Tunnit-kertakirjautuminen 1.0 / Mikan pilotti
+
+Tämä paketti asennetaan TJT-PALVELIMELLE. Edellytys: 11.11.2026 asennettu
+Tunnit-linkki 1.0 ja muuttumattomat tuetut portaalin ohjelmatiedostot.
+Jos lähdeversio poikkeaa, asennus pysähtyy ennen muutoksia.
+
+1. Pura ZIP Lataukset-kansioon.
+2. Avaa Windows PowerShell järjestelmänvalvojana ja suorita:
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\Downloads\TJT-Portaali-Tunnit-SSO-1.0\Paivita-Tunnit-SSO.ps1"
+3. Odota VALMIS-viestiä. Portaalissa on lyhyt käyttökatko. Käyttäjien tulee
+   tallentaa keskeneräiset muutokset ennen asennusta ja kirjautua uudelleen.
+4. Kirjaudu portaaliin käyttäjällä mika.viljanen. Avaa TJT-yrityksen Tunnit.
+5. Yhdistä nykyinen tili mika.viljanen@julkisivutekniikka.fi antamalla
+   nykyinen Tuntivahti-salasana ja hyväksymällä yhdistäminen.
+   Salasana kirjoitetaan vain tähän omaan lomakkeeseen, ei keskusteluun.
+6. Jatkossa Tunnit avautuu samalla selaimella portaalikirjautumisella.
+
+TARKISTA ASENNUKSEN JÄLKEEN
+- Tunnit näyttää tutut henkilöt ja tunnit. Älä tee ylimääräisiä koekirjauksia.
+- Palaa portaaliin ja avaa Tunnit uudelleen: ei uutta salasanakyselyä.
+- Avaa portaali toiseen välilehteen ja kirjaudu ulos. Tunnit-välilehden
+  päivittäminen estyy; avoin näkymä sulkeutuu viimeistään seuraavan
+  tilatarkistuksen yhteydessä (20 s näkyvällä välilehdellä / palatessa).
+- Kirjaudu portaaliin uudelleen ja avaa Tunnit: yhdistämistä ei normaalisti
+  tarvitse toistaa. Portaalin 30 minuutin joutoaika ja 8 tunnin enimmäisaika
+  säilyvät. Pelkkä tilatarkistus ei jatka istuntoa.
+- Työntekijän suora https://tuntivahti.vercel.app/ toimii kuten ennenkin.
+
+RAJAUS JA TIEDOT
+- Vain Mikan omistajatunnus kuuluu pilottiin. Muille Tunnit-kortti avaa
+  edelleen erillisen Tuntivahdin. Laajennus työnjohdolle tehdään pilotin jälkeen.
+- Käytössä on sama Supabase-tietokanta ja nykyisen Tuntivahti-tilin oikeudet.
+  Käyttäjiä, salasanoja tai tunteja ei kopioida eikä muuteta asennuksessa.
+  Tämä ei ole kaikkien sovellusten yhteinen uusi käyttäjähakemisto.
+- Tuntivahti avautuu portaalin /tunnit/-osoitteessa. Jokainen tietopyyntö
+  tarkistaa portaalin istunnon ja nykyisen Tuntivahti-tilin oikeuden.
+  Uloskirjautumisen jo hyväksymää, käynnissä olevaa tallennusta ei peruta.
+- Nykyinen julkinen Tuntivahti on erillinen istunto: portaalista uloskirjautuminen
+  ei kirjaa ulos erikseen avatusta julkisesta Tuntivahdista eikä muilta laitteilta.
+- Salasanaa ei tallenneta. Uusimistunniste salataan AES-256-GCM:llä; avain
+  suojataan Windows DPAPI:lla ja rajatuilla kansio-oikeuksilla.
+  Sijainti: C:\TJT\Asetukset\TJT-Portaali-v1\tuntivahti
+  Älä lähetä tämän kansion sisältöä, DPAPI-tiedostoa tai tunnisteita tukipyyntöön.
+- Yhdistäminen on palvelimelle annettava oikeus käyttää omaa Tuntivahti-tiliä.
+  Sen voi poistaa Tuntien yläpalkin Poista yhdistäminen -painikkeella.
+  Tämä ei poista henkilöä tai tunteja. Palvelimen palautus/uusiminen tai
+  Supabase-istunnon päättyminen voi edellyttää yhdistämistä uudelleen.
+- Olemassa oleva varmuuskopiointi tarkistetaan ennen ja jälkeen asennuksen.
+  Tämä paketti ei muuta sen sisältöä eikä lupaa kirjautumisyhteyden palautusta
+  uudelle Windows-palvelimelle. Tuntien varmuuskopiointi säilyy ennallaan.
+- Tailscalea, palomuuria, portaalin käyttäjätietokantaa tai Supabase-skeemaa
+  ei muuteta. Palvelimelta tarvitaan HTTPS-yhteys nykyiseen Supabaseen.
+
+VIRHETILANNE
+Asennus yrittää palauttaa aiemman server.cjs:n, portal.js:n ja manifestin.
+Se ei poista tietokantoja. Keskeneräinen uusi moduuli ja asetukset siirretään
+palautuskansioon; konsoli kertoo polun. Jos palautus ei onnistu, älä aja
+asennusta toistuvasti vaan lähetä virheviesti (ei tunnisteita tai salasanoja).
+Jos yhdistäminen ei onnistu, vanha julkinen Tuntivahti on edelleen käytettävissä.
+
+TESTAUS
+Automaattiset tietoturva-, käyttöoikeus- ja selainadapteritestit tehdään
+ennen pakkaamista. Windows-palvelimen tehtävät, DPAPI, ACL ja yhteys oikeaan
+Supabase-tiliin varmistuvat lopullisesti vasta palvelimella asentamalla ja
+Mikan tekemällä ensimmäisellä yhdistämisellä. Paketti ei sisällä salasanoja.

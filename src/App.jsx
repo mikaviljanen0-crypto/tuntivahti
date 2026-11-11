@@ -2,6 +2,7 @@ import React,{useEffect,useMemo,useState} from 'react';
 import {supabase} from './main.jsx';
 import {languageLocale,languageOptions,translatedLitteraName,workerText} from './i18n.js';
 import TimeStudio from './TimeStudio.jsx';
+import PortalRoot from './PortalRoot.jsx';
 
 const roleNames={admin:'Pääkäyttäjä',foreman:'Työnjohtaja',worker:'Työntekijä'};
 const roleLabel=profile=>profile.role==='admin'&&profile.is_foreman?'Pääkäyttäjä · Työnjohtaja':roleNames[profile.role];
@@ -24,6 +25,9 @@ const validPhone=value=>/^\+[1-9]\d{7,14}$/.test(normalizePhone(value));
 const approvalText=status=>status==='approved'?'Hyväksytty':status==='submitted'?'Odottaa hyväksyntää':status==='returned'?'Palautettu':'Luonnos';
 
 export default function App(){
+ return import.meta.env.VITE_PORTAL_MODE==='true'?<PortalRoot db={supabase}><StandardApp/></PortalRoot>:<StandardApp/>;
+}
+function StandardApp(){
  const [session,setSession]=useState(null),[profile,setProfile]=useState(null),[loading,setLoading]=useState(true),[passwordRecovery,setPasswordRecovery]=useState(false);
  useEffect(()=>{if(!supabase){setLoading(false);return}supabase.auth.getSession().then(({data})=>{setSession(data.session);setLoading(false)});const {data:{subscription}}=supabase.auth.onAuthStateChange((event,s)=>{setSession(s);if(event==='PASSWORD_RECOVERY')setPasswordRecovery(true)});return()=>subscription.unsubscribe()},[]);
  useEffect(()=>{if(!session){setProfile(null);return}supabase.from('profiles').select('id,full_name,email,phone,language,role,is_foreman,active,organization_id,employer_id,organizations(name),employers(name)').eq('id',session.user.id).single().then(({data,error})=>{if(error)console.error(error);setProfile(data)})},[session]);

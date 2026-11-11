@@ -1,0 +1,14 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {makePortalClient} from './portal-client.js';
+import {createClient} from '@supabase/supabase-js';
+function fixture(){let options;const calls=[],navigations=[];let current={linked:true,csrf:'csrf',user:{id:'bound-user'}};const db=makePortalClient((url,key,config)=>{options=config;return {};},{origin:'https://portal.test',navigate:url=>navigations.push(url),fetchImpl:async(url,init)=>{calls.push({url,init});return Response.json(url==='/tunnit/session'?current:{ok:true});}});return {db,calls,navigations,get options(){return options;},setState:s=>current=s};}
+test('portal client never persists or refreshes a browser Supabase session',async()=>{const f=fixture();await f.db.portal.sync();assert.deepEqual(f.options.auth,{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false});assert.equal((await f.db.auth.getSession()).data.session.user.id,'bound-user');});
+test('portal transport strips caller bearer and apikey and carries portal CSRF',async()=>{const f=fixture();await f.db.portal.sync();await f.options.global.fetch('https://portal.test/tunnit/supabase/rest/v1/time_entries',{method:'PATCH',headers:{Authorization:'secret',apikey:'secret'},body:'{}'});const c=f.calls.at(-1);assert.equal(c.init.headers.has('authorization'),false);assert.equal(c.init.headers.has('apikey'),false);assert.equal(c.init.headers.get('x-tjt-csrf'),'csrf');assert.equal(c.init.credentials,'same-origin');await assert.rejects(()=>f.options.global.fetch('https://evil.test/api',{}));});
+test('portal signout invalidates current portal session and returns to portal',async()=>{const f=fixture();await f.db.portal.sync();await f.db.auth.signOut();assert.equal(f.calls.at(-1).url,'/portal-api/logout');assert.deepEqual(f.navigations,['/']);assert.equal((await f.db.auth.getSession()).data.session,null);});
+test('real Supabase client performs table reads and function calls through the portal',async()=>{
+ const calls=[];const db=makePortalClient(createClient,{origin:'https://portal.test',fetchImpl:async(url,init)=>{calls.push({url,init});return Response.json(url==='/tunnit/session'?{linked:true,csrf:'csrf',user:{id:'bound-user'}}:url.includes('/functions/')?{id:'created'}:[{id:'row'}]);}});
+ await db.portal.sync();const rows=await db.from('time_entries').select('id').eq('user_id','bound-user');assert.equal(rows.error,null);assert.deepEqual(rows.data,[{id:'row'}]);
+ const fn=await db.functions.invoke('create-user',{body:{email:'test@example.test'}});assert.equal(fn.error,null);assert.equal(fn.data.id,'created');
+ for(const c of calls.slice(1)){assert.ok(c.url.startsWith('/tunnit/supabase/'));assert.equal(c.init.headers.has('authorization'),false);assert.equal(c.init.headers.has('apikey'),false);assert.equal(c.init.headers.get('x-tjt-csrf'),'csrf');}
+});
