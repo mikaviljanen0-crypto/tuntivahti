@@ -1,0 +1,64 @@
+TJT-Portaali – Tunnit-kertakirjautuminen 1.1 / työnjohto
+
+Päivitys toimivan SSO 1.0 -pilotin päälle TJT-PALVELIMELLE.
+Mikan jo tehty tilin yhdistäminen ja salausavain säilyvät. Päivitys ei muuta
+henkilöitä, salasanoja, tuntikirjauksia, portaalin käyttäjätietokantaa tai
+Tuntivahdin käyttöoikeuksia. Työntekijöiden julkinen kirjautuminen säilyy.
+
+ASENNUS
+1. Pura ZIP palvelimen Lataukset-kansioon.
+2. Tallentakaa keskeneräiset työt: portaali käynnistetään hetkeksi uudelleen.
+3. Avaa Windows PowerShell järjestelmänvalvojana ja suorita:
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\Downloads\TJT-Portaali-Tunnit-SSO-1.1\Paivita-Tunnit-Tyonjohto.ps1"
+4. Odota VALMIS-viestiä ja päivitä selain. Tarvittaessa kirjaudu portaaliin uudelleen.
+5. Mikan Tunnit avautuu edelleen ilman uutta tilin yhdistämistä.
+
+OHJE MUILLE TYÖNJOHTAJILLE
+1. Kirjaudu omalla tunnuksellasi TJT-portaaliin.
+2. Valitse Tampereen Julkisivutekniikka Oy ja avaa Tunnit.
+3. Anna oman nykyisen Tuntivahti-tilisi sähköposti ja salasana. Sähköposti voi
+   olla eri kuin portaalitunnuksesi. Älä käytä Mikan tai toisen henkilön tiliä.
+4. Hyväksy tilin yhdistäminen ja paina Yhdistä Tuntivahti.
+5. Jatkossa portaalikirjautuminen riittää. Salasanaa ei tallenneta.
+
+KÄYTTÖOIKEUKSIEN RAJAUS
+- Käyttäjällä pitää olla aktiivinen portaalitunnus, jonka väliaikainen salasana
+  on vaihdettu, sekä vähintään yksi olemassa oleva TJT-yrityksen ohjelmaoikeus.
+- Yhdistettävällä Tuntivahti-tilillä täytyy olla aktiivinen työnjohtaja- tai
+  pääkäyttäjärooli ja sama TJT-organisaatio kuin toimivassa Mikan pilotissa.
+  Tavallinen työntekijätili tai toisen organisaation tili ei kelpaa.
+- Oikeudet tuntitietoihin määräytyvät edelleen oman Tuntivahti-tilin mukaan.
+  Tämä ei myönnä uusia Tuntivahti-rooleja eikä laajenna työnjohtajaa pääkäyttäjäksi.
+- Sama Tuntivahti-tili voidaan yhdistää vain yhteen portaalitunnukseen.
+- Tämä päivitys ei lisää erillistä Tunnit-oikeusvalintaa portaalin oikeusvalikkoon.
+  Olemassa oleva TJT-pääsy ja Tuntivahdin oma työnjohto-oikeus ovat molemmat ehtoja.
+- Previmekin tai TJT Katon erillisiä Tuntivahti-organisaatioita ei yhdistetä.
+  Myöskään uusia portaali- tai Tailscale-tunnuksia ei perusteta tässä päivityksessä.
+
+TARKISTA
+- Mikan aiempi yhdistys toimii ja oikeat tuntitiedot näkyvät.
+- Yksi toinen työnjohtaja yhdistää oman tilinsä ja tarkistaa oman nimensä.
+- Hän kirjautuu portaalista ulos ja uudelleen sisään: Tunnit avautuu ilman
+  erillistä Tuntivahti-salasanaa.
+- Portaalista uloskirjautuminen estää uudet Tunnit-pyynnöt. Jo hyväksyttyä
+  käynnissä olevaa tallennusta ei peruta. Avoin näkymä tarkistaa istunnon
+  20 sekunnin välein / välilehdelle palatessa.
+
+VIRHETILANNE JA VARMUUSKOPIOT
+Asennus tarkistaa lähdeversiot, tiedostojen tarkistussummat, paikallisen
+varmuuskopion sekä Drive-palautuksen ennen ja jälkeen muutosten.
+Jos asennus epäonnistuu, se yrittää palauttaa aiemmat ohjelmatiedostot ja
+pilotin asetukset. Salattuja kirjautumisyhteyksiä tai tuntitietoja ei poisteta
+eikä palauteta vanhentuneeseen kopioon. Konsoli ilmoittaa palautuskansion.
+Jos lähdetiedostot ovat muuttuneet, pyydä nykyiseen versioon sopiva paketti.
+Vanha julkinen Tuntivahti https://tuntivahti.vercel.app/ toimii edelleen.
+
+Uusimistunnisteet salataan palvelimella; selain ei saa niitä. Yhdistämisen voi
+poistaa Tuntien yläpalkista. Portaalista uloskirjautuminen ei kirjaa ulos erikseen
+avatusta julkisesta Tuntivahdista tai toisilta laitteilta. Istunnon vanhentuminen
+tai tunnuksen muutos voi edellyttää uudelleenyhdistämistä. Windows-palvelimen
+vaihdon/palautuksen jälkeen yhteys voidaan joutua yhdistämään uudelleen.
+
+Älä lähetä salasanoja, DPAPI-tiedostoja tai grants-kansion tiedostoja tukeen.
+Windowsin ajastukset, ACL/DPAPI ja toinen oikea työnjohtajatili varmistetaan
+lopullisesti palvelimella asentamalla. Paketti ei sisällä kirjautumistunnisteita.
