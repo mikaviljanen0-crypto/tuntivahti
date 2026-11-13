@@ -1,4 +1,10 @@
-import React,{useEffect,useState} from 'react';
+import React,{createContext,useContext,useEffect,useState} from 'react';
+const PortalConnectionContext=createContext(null);
+export function PortalConnectionDetails({children}){
+ const connection=useContext(PortalConnectionContext);
+ if(!connection)return children;
+ return <details className="tjt-connection"><summary aria-label="Oma Tuntivahti-yhteys" title="Oma Tuntivahti-yhteys">{children}</summary><div className="tjt-connection-panel"><strong>Portaalikirjautuminen</strong><p>Tuntivahti-tilisi on yhdistetty portaaliin.</p><button type="button" onClick={connection.unlink} disabled={connection.busy}>{connection.busy?'Odota…':'Poista yhdistäminen'}</button>{connection.error&&<p role="alert">{connection.error}</p>}</div></details>;
+}
 export default function PortalRoot({db,children}){
  const [state,setState]=useState(db.portal.state),[email,setEmail]=useState(''),[password,setPassword]=useState(''),[consent,setConsent]=useState(false),[error,setError]=useState(''),[busy,setBusy]=useState(false);
  useEffect(()=>{setEmail(state?.email||'');},[state?.email]);
@@ -10,7 +16,7 @@ export default function PortalRoot({db,children}){
  },[db]);
  async function link(e){e.preventDefault();setBusy(true);setError('');try{if(state.reconnect)await db.portal.unlink();await db.portal.link(email,password,consent);setPassword('');}catch(e){setError(e.message);setPassword('');}finally{setBusy(false);}}
  async function unlink(){if(!window.confirm('Poistetaanko Tuntivahdin yhdistäminen portaaliin? Tuntikirjaukset ja nykyinen Tuntivahti-tunnus säilyvät.'))return;setBusy(true);setError('');try{await db.portal.unlink();}catch(e){setError(e.message);}finally{setBusy(false);}}
- if(state?.linked)return <><div className="s-portal-session"><a href="/">← TJT-portaali</a><span>Portaalikirjautuminen</span><button type="button" onClick={unlink} disabled={busy}>Poista yhdistäminen</button>{error&&<span role="alert">{error}</span>}</div>{children}</>;
+ if(state?.linked)return <PortalConnectionContext.Provider value={{unlink,busy,error}}>{children}</PortalConnectionContext.Provider>;
  return <main className="login"><section className="login-card"><div className="logo">✓</div><h1>{!state?'Avataan Tuntivahtia…':state.ended?'Kirjaudu portaaliin':state.error?'Yhteys ei onnistunut':'Yhdistä oma Tuntivahti-tilisi'}</h1>
  {state?.ended?<><p>Portaalin istunto on päättynyt tai käyttöoikeutta ei ole. Kirjaudu portaalin etusivulla uudelleen.</p><a className="primary" href="/">Avaa portaali</a></>:state?.error?<><p role="alert">{state.error}</p><button type="button" className="primary" onClick={()=>db.portal.sync().catch(()=>{})}>Yritä uudelleen</button><p><a href="/">Takaisin portaaliin</a></p></>:state&&<>
  <p>{state.message||'Tämä tehdään vain yhdistämisen yhteydessä. Jatkossa Tunnit avautuu portaalikirjautumisella.'}</p>

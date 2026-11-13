@@ -1,0 +1,15 @@
+#requires -Version 5.1
+#requires -RunAsAdministrator
+[CmdletBinding()]param()
+Set-StrictMode -Version Latest
+$ErrorActionPreference='Stop'
+try {
+ $common=Join-Path $PSScriptRoot 'Yhteiset.ps1'
+ if((Get-FileHash -LiteralPath $common -Algorithm SHA256).Hash -ne '__COMMON_SHA__'){throw 'Paketin Yhteiset.ps1-tarkistussumma ei tasmaa.'}
+ . $common
+ Initialize-UiUpdate
+ $result=Invoke-UiUpdate 'check'
+ if($result.already){Write-Host 'Tuntien ulkoasu 1.4 on jo asennettu ja tiedostot tasmaavat.' -ForegroundColor Green}
+ else{Write-Host 'Tuntien lahtoversio, paivityspaketti ja asennusmanifesti tasmaavat.' -ForegroundColor Green}
+ Write-Host 'Tarkistus valmis. Tiedostoja tai tietoja ei muutettu.'
+} catch {Write-Host $_.Exception.Message -ForegroundColor Red;exit 1}

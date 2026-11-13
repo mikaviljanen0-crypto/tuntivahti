@@ -1,0 +1,5 @@
+// Reconstruct code-only test baseline from the authentic 1.3 payload and bridge source.
+import fs from 'node:fs';import path from 'node:path';import{createRequire}from'node:module';import{fileURLToPath}from'node:url';
+const require=createRequire(import.meta.url),u=require('./Paivita-Ulkoasu.cjs'),here=path.dirname(fileURLToPath(import.meta.url));
+const[payload,portal,destination=path.join(here,'test-baseline')]=process.argv.slice(2);if(!payload||!portal)throw Error('Usage: node prepare-baseline.mjs /1.3/payload/tuntivahti /source/portal [/output]');if(fs.existsSync(destination))throw Error('Baseline destination already exists.');
+for(const[f,h]of Object.entries({...u.REQUIRED_PREVIOUS,...u.GUARDS})){const source=path.resolve(f.startsWith('public/')?payload:portal,f);if(u.sha(fs.readFileSync(source))!==h)throw Error('Baseline hash mismatch: '+f);const target=u.safePath(path.resolve(destination),f);fs.mkdirSync(path.dirname(target),{recursive:true});fs.copyFileSync(source,target)}console.log(path.resolve(destination));
