@@ -1,0 +1,35 @@
+#requires -Version 5.1
+Set-StrictMode -Version Latest
+$ErrorActionPreference='Stop'
+$script:UpdateApp='C:\TJT\Ohjelmat\TJT-Portaali-v1'
+$script:UpdateRoot=Join-Path $PSScriptRoot 'ulkoasu-1.4'
+$script:UpdateNode='C:\Program Files\nodejs\node.exe'
+function Initialize-UiUpdate {
+ if($env:COMPUTERNAME -ne 'TJT-PALVELIN'){throw 'Aja tama TJT-PALVELIMELLA.'}
+ $principal=[Security.Principal.WindowsPrincipal]::new([Security.Principal.WindowsIdentity]::GetCurrent())
+ if(!$principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)){throw 'Avaa Windows PowerShell jarjestelmanvalvojana.'}
+ if(![Environment]::Is64BitProcess){throw 'Tarvitaan 64-bittinen PowerShell.'}
+ $expected=@{'Paivita-Ulkoasu.cjs'='__UPDATER_SHA__';'ulkoasu.json'='__MANIFEST_SHA__'}
+ foreach($entry in $expected.GetEnumerator()) {
+  if((Get-FileHash -LiteralPath (Join-Path $script:UpdateRoot $entry.Key) -Algorithm SHA256).Hash -ne $entry.Value){throw ('Paivityspaketin tarkistussumma ei tasmaa: '+$entry.Key)}
+ }
+ if(!(Test-Path -LiteralPath $script:UpdateNode)){throw 'Asennettu Node.js puuttuu.'}
+ $version=& $script:UpdateNode --version
+ if($LASTEXITCODE -ne 0 -or $version -notmatch '^v24\.'){throw 'Tarvitaan asennettu Node 24.'}
+}
+function Invoke-UiUpdate([string]$Mode,[string]$Destination='') {
+ $arguments=@((Join-Path $script:UpdateRoot 'Paivita-Ulkoasu.cjs'),$Mode,$script:UpdateApp)
+ if($Destination){$arguments+=$Destination}
+ $result=& $script:UpdateNode @arguments
+ if($LASTEXITCODE -ne 0){throw 'Tarkistus tai paivitys keskeytyi. Kopioi ylla oleva ilmoitus keskusteluun.'}
+ return ($result | ConvertFrom-Json)
+}
+function Assert-UiEnvironment {
+ # Invoke-UiUpdate check verifies this installed helper before it is loaded.
+ . (Join-Path $script:UpdateApp 'Yhteiset.ps1')
+ Assert-Environment
+ $config=Read-Config
+ if($config.phase -ne 'active'){throw 'Portaalin pitaa olla kaytossa.'}
+ Assert-OwnTask $TjtServerTask (Join-Path $script:UpdateApp 'server.cjs') 'TJT Portal server v1' | Out-Null
+ Wait-Portal $false
+}

@@ -1,0 +1,22 @@
+✔ authentic 1.3 baseline installs, publishes index last, retains old assets and repeats (700.249345ms)
+✔ rollback keeps new assets and newer unrelated updates; reinstall and repeat work (1358.727203ms)
+✔ interrupted apply restores entry, retains staged assets and permits retry (689.223575ms)
+✔ concurrent unrelated manifest update aborts but survives rollback (240.030462ms)
+✔ rollback merges unrelated update during restore (587.44203ms)
+✔ failed rollback restores new UI and allows retry (581.968449ms)
+✔ wrong UI baseline and runtime rejected before backup (182.421557ms)
+✔ corrupt payload and invalid JS reject (117.370291ms)
+✔ path escape, Windows streams, unknown assets and reused hashes reject (117.770694ms)
+✔ linked payload/destination and existing lock reject (137.658279ms)
+✔ concurrent own file modification survives and flags manual recovery (145.745951ms)
+✔ corrupt backup and later UI block rollback (585.524631ms)
+✔ Windows separator manifest preserved without duplicate keys (351.689074ms)
+✔ package pins PowerShell chain, BOM/CRLF, hashes and source baseline (0.526807ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6500.670859

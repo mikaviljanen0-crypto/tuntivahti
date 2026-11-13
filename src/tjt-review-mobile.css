@@ -1,0 +1,24 @@
+.tjt-review-mobile{display:none}
+@media(max-width:700px){
+ .tjt-review-desktop{display:none}
+ .tjt-review-mobile{display:block;padding:0 14px 14px;min-width:0}
+ .studio .tjt-review-help{font-size:12px;line-height:1.5;margin:0 0 12px}
+ .tjt-worker-hours{border:1px solid var(--line);border-radius:12px;margin-bottom:10px;overflow:hidden;background:var(--surface,#fff)}
+ .tjt-worker-hours summary{list-style:none;display:flex;align-items:center;gap:10px;padding:14px;min-height:72px;cursor:pointer}
+ .tjt-worker-hours summary::-webkit-details-marker{display:none}
+ .tjt-worker-hours summary:focus-visible{outline:3px solid #b7d87b;outline-offset:-3px}
+ .tjt-worker-name{min-width:0;flex:1;overflow-wrap:anywhere}
+ .tjt-worker-hours strong,.tjt-worker-hours small{display:block}
+ .tjt-worker-hours small{font-size:11px;color:var(--muted)}
+ .tjt-worker-total{text-align:right;white-space:nowrap;flex-shrink:0}
+ .tjt-worker-total strong{font-variant-numeric:tabular-nums}
+ .tjt-worker-hours summary>svg{flex-shrink:0;transition:transform .15s}
+ .tjt-worker-hours[open] summary>svg{transform:rotate(90deg)}
+ .tjt-mobile-days{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;border-top:1px solid var(--line);padding:12px}
+ .tjt-mobile-days .s-cell{width:100%;min-width:0;min-height:78px;height:auto;padding:8px 3px;border-radius:8px;text-align:center}
+ .tjt-mobile-days .s-cell small{font-size:11px;color:inherit;opacity:.85}
+ .tjt-mobile-days .s-cell strong{font-size:17px}
+ .tjt-mobile-days .s-cell span{font-size:10px;white-space:normal;line-height:1.2}
+ .tjt-mobile-days .s-cell.is-today{outline:2px solid var(--green);outline-offset:-2px}
+}
+@media print{.tjt-review-mobile{display:none}.tjt-review-desktop{display:block}}

@@ -2,6 +2,7 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import { createClient } from "@supabase/supabase-js";
 import "../styles.css";
+import "./tjt-theme.js";
 import App from "./App.jsx";
 import { createPreviewFetch } from "./preview-guard.js";
 import { makePortalClient } from "./portal-client.js";

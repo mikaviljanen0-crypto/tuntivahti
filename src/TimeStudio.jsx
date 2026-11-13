@@ -21,9 +21,15 @@ import {
 import { studioText } from "./studio-i18n.js";
 import { translatedLitteraName, languageLocale } from "./i18n.js";
 import "./studio.css";
+import "./tjt-review-mobile.css";
+import "./tjt-theme.css";
+import { useWorkspaceTheme } from "./tjt-theme.js";
+import { PortalConnectionDetails } from "./PortalRoot.jsx";
 
 const paths = {
   clock: "M12 8v4l3 2 M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20",
+  moon: "M20.8 13A9 9 0 0 1 11 3.2 9 9 0 1 0 20.8 13Z",
+  sun: "M12 3V1 M12 23v-2 M3 12H1 M23 12h-2 M4.2 4.2l1.4 1.4 M18.4 18.4l1.4 1.4 M4.2 19.8l1.4-1.4 M18.4 5.6l1.4-1.4 M17 12a5 5 0 1 0-10 0 5 5 0 0 0 10 0",
   grid: "M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z",
   check: "m5 12 4 4L19 6",
   calendar:
@@ -220,7 +226,7 @@ export function DayDialog({ children, title, onClose }) {
     >
       <header>
         <div>
-          <span className="s-eyebrow">TUNTIVAHTI</span>
+          <span className="s-eyebrow">TJT TUNNIT</span>
           <h2>{title}</h2>
         </div>
         <button
@@ -243,6 +249,7 @@ export default function TimeStudio({
   previewApi,
 }) {
   const worker = profile.role === "worker";
+  const [theme, toggleTheme] = useWorkspaceTheme();
   const [language, setLanguage] = useState(
     ["fi", "sq", "en", "uk"].includes(profile.language)
       ? profile.language
@@ -287,19 +294,36 @@ export default function TimeStudio({
             ]
           : []),
       ];
-  const portal =
-    import.meta.env.VITE_PORTAL_URL ||
-    "https://tjt-palvelin.tail528926.ts.net/";
+  const portal = import.meta.env.VITE_PORTAL_MODE === "true"
+    ? "/"
+    : import.meta.env.VITE_PORTAL_URL || "https://tjt-palvelin.tail528926.ts.net/";
   const Legacy = legacy[view];
   return (
     <div className={`studio ${worker ? "is-worker" : "is-manager"}`}>
+      <a className="tjt-skip-link" href="#tjt-hours-content">Siirry sisältöön</a>
+      <header className="tjt-app-header">
+        <a className="tjt-home-link" href={portal} aria-label="TJT Työpöytä">
+          <span className="tjt-logo">TJT</span><Icon name="grid" size={19}/><span>Työpöytä</span>
+        </a>
+        <div className="tjt-header-actions">
+          <strong className="tjt-app-name">TJT Tunnit</strong>
+          <button type="button" className="tjt-theme-toggle" onClick={toggleTheme}
+            aria-label={theme === "dark" ? "Vaihda vaaleaan teemaan" : "Vaihda tummaan teemaan"}
+            title={theme === "dark" ? "Vaalea teema" : "Tumma teema"} aria-pressed={theme === "dark"}>
+            <Icon name={theme === "dark" ? "sun" : "moon"} size={21}/>
+          </button>
+          <PortalConnectionDetails><span className="tjt-header-avatar" title={profile.full_name} aria-label={profile.full_name}>
+            {profile.full_name.split(" ").filter(Boolean).map(name => name[0]).slice(0, 2).join("")}
+          </span></PortalConnectionDetails>
+        </div>
+      </header>
       <aside className="s-sidebar">
-        <a className="s-brand" href="?view=today">
+        <a className="s-brand" href={`?view=${available[0]}`}>
           <span className="s-mark">
             <Icon name="clock" size={24} />
           </span>
           <span>
-            Tuntivahti<small>TJT · TYÖAJAN HALLINTA</small>
+            Tunnit<small>TYÖAIKA YHDESSÄ PAIKASSA</small>
           </span>
         </a>
         <div className="s-nav-caption">
@@ -323,7 +347,7 @@ export default function TimeStudio({
           {!worker && (portal === "/" || /^https:\/\//.test(portal)) && (
             <a className="s-portal" href={portal}>
               <Icon name="link" />
-              TJT-portaali
+              Työpöytä
             </a>
           )}
           <div className="s-person">
@@ -357,7 +381,7 @@ export default function TimeStudio({
       <div className="s-main">
         <header className="s-topline">
           <span>
-            <span className="s-mobile-brand">Tuntivahti</span>
+            <span className="s-mobile-brand">{items.find((x) => x[0] === view)?.[1]}</span>
             <span className="s-breadcrumb">
               {profile.organizations?.name || "Työajan hallinta"} <b>/</b>{" "}
               {items.find((x) => x[0] === view)?.[1]}
@@ -408,11 +432,10 @@ export default function TimeStudio({
                 {label}
               </button>
             ))}
-            <a href={portal}>TJT-portaali ↗</a>
           </nav>
         )}
         {previewApi && <div className="s-preview-bar">{t("preview")}</div>}
-        <main className="s-content">
+        <main className="s-content" id="tjt-hours-content" tabIndex={-1}>
           {worker ? (
             <WorkerDesk
               profile={profile}
@@ -440,7 +463,7 @@ export default function TimeStudio({
           )}
         </main>
         <footer className="s-footer">
-          Tuntivahti <span>Selkeä päivä. Oikeat tunnit.</span>
+          TJT Tunnit <span>Selkeä päivä. Oikeat tunnit.</span>
         </footer>
       </div>
       {worker && (
@@ -1348,7 +1371,7 @@ function ReviewDesk({ profile, api }) {
             Odottaa hyväksyntää
           </span>
           <strong>
-            {pendingDays}
+            {data.loading || data.error ? "—" : pendingDays}
             <small> päivää</small>
           </strong>
           <button onClick={() => setStatus("submitted")}>
@@ -1361,10 +1384,10 @@ function ReviewDesk({ profile, api }) {
             Työntekijöitä kirjauksilla
           </span>
           <strong>
-            {new Set(rows.map((r) => r.employee_id)).size}
-            <small> / {data.workers.length}</small>
+            {data.loading || data.error ? "—" : new Set(rows.map((r) => r.employee_id)).size}
+            <small> / {data.loading || data.error ? "—" : data.workers.length}</small>
           </strong>
-          <p>{returnedDays} päivää palautettu korjattavaksi</p>
+          <p>{data.loading || data.error ? "—" : returnedDays} päivää palautettu korjattavaksi</p>
         </article>
       </div>
       <section className="s-card">
@@ -1491,8 +1514,31 @@ function ReviewDesk({ profile, api }) {
           </div>
         ) : data.error ? null : (
           <>
+            <div className="tjt-review-mobile">
+              <p className="tjt-review-help">{workers.length} henkilöä · sukunimen mukaan. Avaa työntekijä ja valitse päivä.</p>
+              {workers.map((w) => (
+                <details className="tjt-worker-hours" key={w.id}>
+                  <summary>
+                    <span className="tjt-worker-name"><strong>{w.full_name}</strong><small>{w.employers?.name}</small></span>
+                    <span className="tjt-worker-total"><strong>{dayTotal(rows.filter((r) => r.employee_id === w.id))} h</strong><small>netto</small></span>
+                    <Icon name="arrow" size={18}/>
+                  </summary>
+                  <div className="tjt-mobile-days">
+                    {dates.map((d) => {
+                      const day=rows.filter((r) => r.employee_id===w.id && r.work_date===d);
+                      const state=dayState(day),highlight=status==='all'||day.some((r)=>r.status===status);
+                      return <button key={d} type="button" className={`s-cell ${state} ${highlight?'':'dim'} ${d===today()?'is-today':''}`} onClick={()=>{setSelection({employee:w.id,date:d});setNote({});setError('');}} aria-label={`${w.full_name}, ${dateLabel(d)}, ${dayTotal(day)} nettotuntia, ${studioText('fi',state)}`}>
+                        <small>{dateLabel(d,'fi',{weekday:'short'})} {dateLabel(d)}</small>
+                        <strong>{day.length?`${dayTotal(day)} h`:'—'}</strong>
+                        <span>{day.length?studioText('fi',state):'Ei kirjausta'}</span>
+                      </button>;
+                    })}
+                  </div>
+                </details>
+              ))}
+            </div>
             <div
-              className="s-matrix-wrap"
+              className="s-matrix-wrap tjt-review-desktop"
               tabIndex={0}
               role="region"
               aria-label="Tuntitaulukko, tarvittaessa vieritä sivusuunnassa"

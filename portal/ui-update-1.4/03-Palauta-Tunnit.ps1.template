@@ -1,0 +1,18 @@
+#requires -Version 5.1
+#requires -RunAsAdministrator
+[CmdletBinding()]param([Parameter(Mandatory=$true)][string]$Palautuskansio)
+Set-StrictMode -Version Latest
+$ErrorActionPreference='Stop'
+try {
+ $common=Join-Path $PSScriptRoot 'Yhteiset.ps1'
+ if((Get-FileHash -LiteralPath $common -Algorithm SHA256).Hash -ne '__COMMON_SHA__'){throw 'Paketin Yhteiset.ps1-tarkistussumma ei tasmaa.'}
+ . $common
+ Initialize-UiUpdate
+ # Verify installed manifest and runtime before loading its environment helper.
+ $checked=Invoke-UiUpdate 'check'
+ Assert-UiEnvironment
+ $result=Invoke-UiUpdate 'rollback' $Palautuskansio
+ if($result.already){Write-Host 'Aiempi Tuntien selainosa on jo kaytossa.' -ForegroundColor Green}
+ else{Write-Host 'AIEMPI TUNTIEN SELAINOSA PALAUTETTU.' -ForegroundColor Green}
+ Write-Host 'Paivita Tuntien sivu Ctrl+F5. Tallennetut tuntikirjaukset ja muiden ohjelmien paivitykset sailyivat.'
+} catch {Write-Host $_.Exception.Message -ForegroundColor Red;exit 1}
